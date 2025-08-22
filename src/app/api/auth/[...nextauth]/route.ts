@@ -11,6 +11,13 @@ if (hasTwitterCredentials) {
     TwitterProvider({
       clientId: process.env.TWITTER_CLIENT_ID!,
       clientSecret: process.env.TWITTER_CLIENT_SECRET!,
+      version: "2.0",
+      authorization: {
+        url: "https://twitter.com/i/oauth2/authorize",
+        params: {
+          scope: "users.read tweet.read offline.access",
+        },
+      },
     })
   );
 }
@@ -26,9 +33,9 @@ const handler = NextAuth({
       if (account && profile) {
         token.accessToken = account.access_token
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        token.twitterId = (profile as any).id_str || (profile as any).id
+        token.twitterId = (profile as any).data?.id || (profile as any).id
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        token.username = (profile as any).screen_name || (profile as any).username
+        token.username = (profile as any).data?.username || (profile as any).username
       }
       return token
     },

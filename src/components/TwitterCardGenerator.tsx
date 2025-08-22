@@ -86,8 +86,42 @@ export default function TwitterCardGenerator() {
   };
 
   const handleConnectedUserProfile = async () => {
-    if (session?.user?.username) {
+    if (!session?.user?.username) return;
+    
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/analyze-connected-profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to analyze connected profile');
+      }
+      
+      const data = await response.json();
+      
+      // 데이터 형식 통일
+      const normalizedProfile = {
+        username: data.profile.username,
+        displayName: data.profile.name,
+        profileImage: data.profile.profile_image_url,
+        bio: data.profile.description,
+        followers: data.profile.public_metrics?.followers_count || 0,
+        following: data.profile.public_metrics?.following_count || 0,
+        verified: data.profile.verified || false,
+        location: data.profile.location || "Crypto Twitter"
+      };
+      
+      setProfile(normalizedProfile);
+    } catch (error) {
+      console.error('Connected profile analysis failed:', error);
+      // Fallback to basic profile fetch
       await fetchTwitterProfile(session.user.username);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -108,31 +142,79 @@ export default function TwitterCardGenerator() {
 
   if (!profile) return (
     <div className="max-w-4xl mx-auto">
-      {/* Twitter Username Input Section */}
+      {/* Twitter Connection Section */}
       <div className="mb-8 text-center">
         <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
           <h3 className="text-white text-xl font-semibold mb-4">
-            Twitter 카드 생성기
+            Twitter 계정 연결
           </h3>
           <p className="text-white/80 mb-6">
-            Twitter 사용자명을 입력하여 Monad Cards 스타일의 카드를 생성하세요.
+            Twitter 계정을 연결하여 실제 프로필과 최근 게시물을 기반으로 카드를 생성하세요.
           </p>
-          <form onSubmit={handleManualSearch} className="flex gap-2 max-w-md mx-auto">
-            <input
-              type="text"
-              value={inputUsername}
-              onChange={(e) => setInputUsername(e.target.value)}
-              placeholder="Twitter 사용자명 입력 (예: elonmusk)"
-              className="flex-1 px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-white/40 focus:outline-none"
-            />
-            <button
-              type="submit"
-              disabled={isLoading || !inputUsername.trim()}
-              className="px-6 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 text-white rounded-lg font-medium transition-colors"
-            >
-              {isLoading ? '로딩...' : '생성'}
-            </button>
-          </form>
+          {!session ? (
+            <div className="space-y-4">
+              <button
+                onClick={() => signIn('twitter')}
+                className="px-8 py-3 bg-white text-teal-600 hover:bg-gray-100 rounded-lg font-medium transition-colors flex items-center gap-2 mx-auto"
+              >
+                <span>🐦</span>
+                Twitter로 로그인
+              </button>
+              <div className="text-white/60 text-sm">또는</div>
+            </div>
+          ) : (
+            <div className="bg-green-500/20 border border-green-500/40 rounded-lg p-4 mb-4">
+              <div className="flex items-center justify-center gap-3">
+                <span className="text-green-400">✅</span>
+                <span className="text-white">@{session.user?.username}로 연결됨</span>
+                <button
+                  onClick={() => signOut()}
+                  className="text-white/60 hover:text-white text-sm ml-2"
+                >
+                  (연결 해제)
+                </button>
+              </div>
+            </div>
+          )}
+          
+          <div className="space-y-4">
+            <form onSubmit={handleManualSearch} className="flex gap-2 max-w-md mx-auto">
+              <input
+                type="text"
+                value={inputUsername}
+                onChange={(e) => setInputUsername(e.target.value)}
+                placeholder={session ? "다른 사용자명 입력" : "사용자명 직접 입력 (예: elonmusk)"}
+                className="flex-1 px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-white/40 focus:outline-none"
+              />
+              <button
+                type="submit"
+                disabled={isLoading || !inputUsername.trim()}
+                className="px-6 py-2 bg-teal-600 hover:bg-teal-700 disabled:bg-gray-600 text-white rounded-lg font-medium transition-colors"
+              >
+                {isLoading ? '로딩...' : '생성'}
+              </button>
+            </form>
+            
+            {session && (
+              <button
+                onClick={handleConnectedUserProfile}
+                disabled={isLoading}
+                className="px-8 py-3 bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 disabled:bg-gray-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2 mx-auto"
+              >
+                {isLoading ? (
+                  <>
+                    <div className="animate-spin w-4 h-4 border-2 border-white/30 border-t-white rounded-full"></div>
+                    프로필 분석 중...
+                  </>
+                ) : (
+                  <>
+                    <span>✨</span>
+                    내 프로필로 카드 생성
+                  </>
+                )}
+              </button>
+            )}
+          </div>
         </div>
       </div>
       
@@ -186,7 +268,7 @@ export default function TwitterCardGenerator() {
           ref={cardRef}
           className="w-80 h-[500px] bg-gradient-to-br from-blue-100 to-purple-100 rounded-3xl p-6 shadow-2xl relative overflow-hidden"
           style={{
-            background: 'linear-gradient(135deg, #4c1d95 0%, #1e1b4b 50%, #312e81 100%)',
+            background: 'linear-gradient(135deg, #50fed6 0%, #3dd5c0 25%, #2bbfaa 50%, #1aa994 75%, #0d9488 100%)',
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1)'
           }}
         >
