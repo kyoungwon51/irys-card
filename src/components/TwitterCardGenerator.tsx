@@ -17,7 +17,7 @@ interface TwitterProfile {
 }
 
 export default function TwitterCardGenerator() {
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const [profile, setProfile] = useState<TwitterProfile | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [inputUsername, setInputUsername] = useState('');
@@ -238,7 +238,7 @@ export default function TwitterCardGenerator() {
                 MONAD CARDS
               </p>
               <p className="text-white/60 text-xs mt-1">
-                "A token of appreciation for Crypto Twitter"
+                &quot;A token of appreciation for Crypto Twitter&quot;
               </p>
             </div>
             <div className="flex justify-center">

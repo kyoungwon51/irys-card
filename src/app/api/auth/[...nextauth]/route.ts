@@ -21,7 +21,9 @@ const handler = NextAuth({
     async jwt({ token, account, profile }) {
       if (account && profile) {
         token.accessToken = account.access_token
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         token.twitterId = (profile as any).data?.id || (profile as any).id
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         token.username = (profile as any).data?.username || (profile as any).username
       }
       return token

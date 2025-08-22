@@ -70,6 +70,7 @@ export async function POST(request: NextRequest) {
     }
 
     // OpenAI로 프로필 분석
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const tweetTexts = recentTweets.map((tweet: any) => tweet.text).join('\n')
     const profileDescription = userData.data.description || ''
 
