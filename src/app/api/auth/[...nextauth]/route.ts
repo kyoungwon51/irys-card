@@ -44,11 +44,17 @@ const handler = NextAuth({
   },
   callbacks: {
     async jwt({ token, account, profile }) {
+      console.log('JWT Callback - Account:', account);
+      console.log('JWT Callback - Profile:', profile);
+      
       if (account && profile) {
         token.accessToken = account.access_token
         // Twitter API v2 response 구조에 맞게 수정
         const userData = (profile as { data?: { id?: string; username?: string; name?: string; profile_image_url?: string }; id?: string; username?: string; name?: string; profile_image_url?: string }).data || profile;
         const typedUserData = userData as { id?: string; username?: string; name?: string; profile_image_url?: string };
+        
+        console.log('User data extracted:', typedUserData);
+        
         token.twitterId = typedUserData.id
         token.username = typedUserData.username
         token.profileImage = typedUserData.profile_image_url
@@ -57,6 +63,8 @@ const handler = NextAuth({
       return token
     },
     async session({ session, token }) {
+      console.log('Session Callback - Token:', token);
+      
       if (session.user) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (session as any).accessToken = token.accessToken;
@@ -69,6 +77,8 @@ const handler = NextAuth({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (session.user as any).displayName = token.displayName;
       }
+      
+      console.log('Final session:', session);
       return session
     },
   }

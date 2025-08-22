@@ -103,10 +103,16 @@ export default function TwitterCardGenerator() {
   };
 
   const handleConnectedUserProfile = async () => {
-    if (!session?.user?.username) return;
+    if (!session?.user?.username) {
+      console.log('No session or username found:', session);
+      return;
+    }
+    
+    console.log('Session data:', session);
     
     setIsLoading(true);
     try {
+      console.log('Calling analyze-connected-profile API...');
       const response = await fetch('/api/analyze-connected-profile', {
         method: 'POST',
         headers: {
@@ -114,11 +120,16 @@ export default function TwitterCardGenerator() {
         },
       });
 
+      console.log('API Response status:', response.status);
+      
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API Error:', errorText);
         throw new Error('Failed to analyze connected profile');
       }
       
       const data = await response.json();
+      console.log('API Response data:', data);
       
       // 데이터 형식 통일
       const normalizedProfile = {
@@ -132,10 +143,12 @@ export default function TwitterCardGenerator() {
         location: data.profile.location || "Crypto Twitter"
       };
       
+      console.log('Normalized profile:', normalizedProfile);
       setProfile(normalizedProfile);
     } catch (error) {
       console.error('Connected profile analysis failed:', error);
       // Fallback to basic profile fetch
+      console.log('Falling back to basic profile fetch...');
       await fetchTwitterProfile(session.user.username);
     } finally {
       setIsLoading(false);

@@ -34,20 +34,32 @@ interface TwitterTweet {
 export async function POST() {
   try {
     const session = await getServerSession() as TwitterSession;
+    console.log('Session data:', JSON.stringify(session, null, 2));
+    
     if (!session?.user || !session.accessToken) {
+      console.log('No session or access token found');
       return NextResponse.json({ error: 'User not authenticated' }, { status: 401 });
     }
 
     const twitterId = session.user.twitterId;
     const username = session.user.username;
     
+    console.log('Twitter ID:', twitterId);
+    console.log('Username:', username);
+    console.log('Access Token exists:', !!session.accessToken);
+    
     // 실제 Twitter API 호출 시도
     try {
+      console.log('Attempting to fetch Twitter profile...');
       const profileData = await fetchTwitterUserProfile(twitterId!, session.accessToken);
+      console.log('Profile data received:', profileData);
+      
       const tweetsData = await fetchUserTweets(twitterId!, session.accessToken);
+      console.log('Tweets data received:', tweetsData?.length, 'tweets');
       
       // AI 기반 자기소개 생성
       const enhancedBio = generateAIBio(profileData, tweetsData);
+      console.log('Enhanced bio generated:', enhancedBio);
       
       const enhancedProfile = {
         ...profileData,
@@ -57,9 +69,10 @@ export async function POST() {
       return NextResponse.json({ profile: enhancedProfile });
       
     } catch (twitterError) {
-      console.log('Twitter API failed, using enhanced mock data:', twitterError);
+      console.error('Twitter API failed:', twitterError);
       // Fallback to enhanced mock data
       const profileAnalysis = generateEnhancedProfile(username!);
+      console.log('Using fallback mock data:', profileAnalysis);
       return NextResponse.json({ profile: profileAnalysis });
     }
     
