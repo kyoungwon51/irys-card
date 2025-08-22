@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { signIn, signOut, useSession } from 'next-auth/react';
 import html2canvas from 'html2canvas';
 import Image from 'next/image';
@@ -21,7 +21,24 @@ export default function TwitterCardGenerator() {
   const [profile, setProfile] = useState<TwitterProfile | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [inputUsername, setInputUsername] = useState('');
+  const [hasTwitterCredentials, setHasTwitterCredentials] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
+
+  // OAuth 상태 확인
+  useEffect(() => {
+    const checkOAuthStatus = async () => {
+      try {
+        const response = await fetch('/api/oauth-status');
+        const data = await response.json();
+        setHasTwitterCredentials(data.hasTwitterCredentials);
+      } catch (error) {
+        console.error('Failed to check OAuth status:', error);
+        setHasTwitterCredentials(false);
+      }
+    };
+    
+    checkOAuthStatus();
+  }, []);
 
   const fetchTwitterProfile = async (username: string) => {
     setIsLoading(true);
@@ -153,13 +170,25 @@ export default function TwitterCardGenerator() {
           </p>
           {!session ? (
             <div className="space-y-4">
-              <button
-                onClick={() => signIn('twitter')}
-                className="px-8 py-3 bg-white text-teal-600 hover:bg-gray-100 rounded-lg font-medium transition-colors flex items-center gap-2 mx-auto"
-              >
-                <span>🐦</span>
-                Twitter로 로그인
-              </button>
+              {hasTwitterCredentials ? (
+                <button
+                  onClick={() => signIn('twitter')}
+                  className="px-8 py-3 bg-white text-teal-600 hover:bg-gray-100 rounded-lg font-medium transition-colors flex items-center gap-2 mx-auto"
+                >
+                  <span>🐦</span>
+                  Twitter로 로그인
+                </button>
+              ) : (
+                <div className="bg-yellow-500/20 border border-yellow-500/40 rounded-lg p-4">
+                  <div className="text-center">
+                    <span className="text-yellow-400">⚠️</span>
+                    <p className="text-white mt-2">Twitter OAuth가 설정되지 않았습니다.</p>
+                    <p className="text-white/80 text-sm mt-1">
+                      현재는 사용자명 입력으로 카드를 생성할 수 있습니다.
+                    </p>
+                  </div>
+                </div>
+              )}
               <div className="text-white/60 text-sm">또는</div>
             </div>
           ) : (
