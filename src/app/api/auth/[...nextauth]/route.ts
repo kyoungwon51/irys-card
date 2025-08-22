@@ -18,6 +18,20 @@ if (hasTwitterCredentials) {
           scope: "users.read tweet.read offline.access",
         },
       },
+      userinfo: {
+        url: "https://api.twitter.com/2/users/me?user.fields=description,profile_image_url,public_metrics,verified,location",
+        async request({ tokens }) {
+          const response = await fetch(
+            "https://api.twitter.com/2/users/me?user.fields=description,profile_image_url,public_metrics,verified,location",
+            {
+              headers: {
+                Authorization: `Bearer ${tokens.access_token}`,
+              },
+            }
+          );
+          return await response.json();
+        },
+      },
     })
   );
 }
@@ -32,10 +46,12 @@ const handler = NextAuth({
     async jwt({ token, account, profile }) {
       if (account && profile) {
         token.accessToken = account.access_token
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        token.twitterId = (profile as any).data?.id || (profile as any).id
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        token.username = (profile as any).data?.username || (profile as any).username
+        // Twitter API v2 response 구조에 맞게 수정
+        const userData = (profile as any).data || profile;
+        token.twitterId = userData.id
+        token.username = userData.username
+        token.profileImage = userData.profile_image_url
+        token.displayName = userData.name
       }
       return token
     },
@@ -47,6 +63,10 @@ const handler = NextAuth({
         (session.user as any).twitterId = token.twitterId;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (session.user as any).username = token.username;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (session.user as any).profileImage = token.profileImage;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (session.user as any).displayName = token.displayName;
       }
       return session
     },

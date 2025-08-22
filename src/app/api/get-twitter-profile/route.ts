@@ -3,19 +3,31 @@ import { getServerSession } from 'next-auth'
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession()
-    if (!session?.accessToken) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const { username } = await request.json()
+
+    if (!username) {
+      return NextResponse.json({ error: 'Username is required' }, { status: 400 })
     }
 
-    const { username } = await request.json()
+    // 세션에서 액세스 토큰 가져오기
+    const session = await getServerSession() as any;
+    let accessToken = session?.accessToken;
+
+    // 세션에 액세스 토큰이 없으면 앱 전용 Bearer Token 사용 (읽기 전용)
+    if (!accessToken) {
+      accessToken = process.env.TWITTER_BEARER_TOKEN;
+    }
+
+    if (!accessToken) {
+      return NextResponse.json({ error: 'Twitter API access not available' }, { status: 401 })
+    }
 
     // Twitter API v2로 사용자 정보 가져오기
     const userResponse = await fetch(
       `https://api.twitter.com/2/users/by/username/${username}?user.fields=description,profile_image_url,public_metrics,verified,location`,
       {
         headers: {
-          Authorization: `Bearer ${session.accessToken}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       }
     )
@@ -34,11 +46,13 @@ export async function POST(request: NextRequest) {
 
     const profile = {
       username: userData.data.username,
-      displayName: userData.data.name,
-      profileImage: userData.data.profile_image_url?.replace('_normal', '_400x400') || userData.data.profile_image_url,
-      bio: userData.data.description || '',
-      followers: userData.data.public_metrics?.followers_count || 0,
-      following: userData.data.public_metrics?.following_count || 0,
+      name: userData.data.name,
+      description: userData.data.description || '',
+      profile_image_url: userData.data.profile_image_url?.replace('_normal', '_400x400') || userData.data.profile_image_url,
+      public_metrics: userData.data.public_metrics || {
+        followers_count: 0,
+        following_count: 0
+      },
       verified: userData.data.verified || false,
       location: userData.data.location || ''
     }
