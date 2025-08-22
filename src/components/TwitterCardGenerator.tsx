@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { signIn, signOut, useSession } from 'next-auth/react';
 import html2canvas from 'html2canvas';
 import Image from 'next/image';
@@ -18,26 +18,19 @@ interface TwitterProfile {
 
 export default function TwitterCardGenerator() {
   const { data: session } = useSession();
-  const [profile, setProfile] = useState<TwitterProfile | null>(null);
+  const [profile, setProfile] = useState<TwitterProfile | null>({
+    username: 'Zeck',
+    displayName: 'Zeck',
+    profileImage: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Zeck',
+    bio: "Big Poster. Active on X. Can be smart, funny, chaotic or loud. Mastery in the art of shitposting.",
+    followers: 8542,
+    following: 432,
+    verified: false,
+    location: "Crypto Twitter"
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [inputUsername, setInputUsername] = useState('');
   const cardRef = useRef<HTMLDivElement>(null);
-
-  // 컴포넌트 마운트 시 기본 카드 표시
-  useEffect(() => {
-    if (!session) {
-      setProfile({
-        username: 'Zeck',
-        displayName: 'Zeck',
-        profileImage: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Zeck',
-        bio: "Big Poster. Active on X. Can be smart, funny, chaotic or loud. Mastery in the art of shitposting.",
-        followers: 8542,
-        following: 432,
-        verified: false,
-        location: "Crypto Twitter"
-      });
-    }
-  }, [session]);
 
   const fetchTwitterProfile = async (username: string) => {
     setIsLoading(true);
@@ -122,7 +115,15 @@ export default function TwitterCardGenerator() {
     }
   };
 
-  if (!profile) return null;
+  if (!profile) return (
+    <div className="max-w-4xl mx-auto">
+      <div className="mb-8 text-center">
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+          <div className="text-white">카드를 로딩 중...</div>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="max-w-4xl mx-auto">
