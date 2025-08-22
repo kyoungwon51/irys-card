@@ -127,93 +127,32 @@ export default function TwitterCardGenerator() {
   return (
     <div className="max-w-4xl mx-auto">
       {/* Twitter Connection Section */}
+      {/* Twitter Username Input Section */}
       <div className="mb-8 text-center">
-        {!session ? (
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-            <h3 className="text-white text-xl font-semibold mb-4">
-              트위터 연결하여 카드 생성
-            </h3>
-            <p className="text-white/80 mb-6">
-              트위터에 연결하여 실제 프로필 정보로 카드를 생성하세요.
-            </p>
-            <div className="flex flex-col gap-4">
-              <button
-                onClick={() => signIn('twitter')}
-                className="px-8 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2 mx-auto"
-              >
-                <span>🐦</span>
-                Twitter로 연결하기
-              </button>
-              <p className="text-white/60 text-sm">또는</p>
-              <form onSubmit={handleManualSearch} className="flex gap-2 max-w-md mx-auto">
-                <input
-                  type="text"
-                  value={inputUsername}
-                  onChange={(e) => setInputUsername(e.target.value)}
-                  placeholder="Twitter 사용자명 입력 (예: elonmusk)"
-                  className="flex-1 px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-white/40 focus:outline-none"
-                />
-                <button
-                  type="submit"
-                  disabled={isLoading || !inputUsername.trim()}
-                  className="px-6 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 text-white rounded-lg font-medium transition-colors"
-                >
-                  {isLoading ? '로딩...' : '생성'}
-                </button>
-              </form>
-            </div>
-          </div>
-        ) : (
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-            <div className="flex items-center justify-center gap-4 mb-4">
-              <span className="text-white">연결됨: @{session.user?.username}</span>
-              <button
-                onClick={() => signOut()}
-                className="text-white/60 hover:text-white text-sm"
-              >
-                연결 해제
-              </button>
-            </div>
-            <div className="flex flex-col gap-4">
-              <button
-                onClick={handleConnectedUserProfile}
-                disabled={isLoading}
-                className="px-8 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2 mx-auto"
-              >
-                {isLoading ? (
-                  <>
-                    <div className="animate-spin w-4 h-4 border-2 border-white/30 border-t-white rounded-full"></div>
-                    프로필 가져오는 중...
-                  </>
-                ) : (
-                  <>
-                    <span>✨</span>
-                    내 프로필로 카드 생성
-                  </>
-                )}
-              </button>
-              
-              <div className="text-white/60 text-sm">또는</div>
-              
-              <form onSubmit={handleManualSearch} className="flex gap-2">
-                <input
-                  type="text"
-                  value={inputUsername}
-                  onChange={(e) => setInputUsername(e.target.value)}
-                  placeholder="다른 사용자명 입력 (예: @username)"
-                  className="flex-1 px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-                <button
-                  type="submit"
-                  disabled={isLoading || !inputUsername.trim()}
-                  className="px-6 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white rounded-lg font-medium transition-colors"
-                >
-                  검색
-                </button>
-              </form>
-            </div>
-          </div>
-        )}
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+          <h3 className="text-white text-xl font-semibold mb-4">
+            Twitter 카드 생성기
+          </h3>
+          <p className="text-white/80 mb-6">
+            Twitter 사용자명을 입력하여 Monad Cards 스타일의 카드를 생성하세요.
+          </p>
+          <form onSubmit={handleManualSearch} className="flex gap-2 max-w-md mx-auto">
+            <input
+              type="text"
+              value={inputUsername}
+              onChange={(e) => setInputUsername(e.target.value)}
+              placeholder="Twitter 사용자명 입력 (예: elonmusk)"
+              className="flex-1 px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-white/40 focus:outline-none"
+            />
+            <button
+              type="submit"
+              disabled={isLoading || !inputUsername.trim()}
+              className="px-6 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 text-white rounded-lg font-medium transition-colors"
+            >
+              {isLoading ? '로딩...' : '생성'}
+            </button>
+          </form>
+        </div>
       </div>
 
       {/* Card Preview */}
