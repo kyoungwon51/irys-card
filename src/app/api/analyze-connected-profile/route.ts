@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { authConfig } from '@/lib/auth';
 
 interface TwitterSession {
   user?: {
@@ -33,7 +34,7 @@ interface TwitterTweet {
 
 export async function POST() {
   try {
-    const session = await getServerSession() as TwitterSession;
+    const session = await getServerSession(authConfig) as TwitterSession;
     console.log('Session data:', JSON.stringify(session, null, 2));
     
     if (!session?.user || !session.accessToken) {

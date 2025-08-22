@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
+import { authConfig } from '@/lib/auth'
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,7 +11,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 세션에서 액세스 토큰 가져오기
-    const session = await getServerSession() as { accessToken?: string } | null;
+    const session = await getServerSession(authConfig) as { accessToken?: string } | null;
     let accessToken = session?.accessToken;
 
     // 세션에 액세스 토큰이 없으면 앱 전용 Bearer Token 사용 (읽기 전용)
