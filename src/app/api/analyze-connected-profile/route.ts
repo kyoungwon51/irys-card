@@ -1,9 +1,39 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 
-export async function POST(request: NextRequest) {
+interface TwitterSession {
+  user?: {
+    twitterId?: string;
+    username?: string;
+  };
+  accessToken?: string;
+}
+
+interface TwitterProfile {
+  username: string;
+  name: string;
+  description: string;
+  profile_image_url: string;
+  public_metrics?: {
+    followers_count: number;
+    following_count: number;
+  };
+  verified: boolean;
+  location?: string;
+}
+
+interface TwitterTweet {
+  text: string;
+  created_at?: string;
+  public_metrics?: {
+    retweet_count: number;
+    like_count: number;
+  };
+}
+
+export async function POST() {
   try {
-    const session = await getServerSession() as any;
+    const session = await getServerSession() as TwitterSession;
     if (!session?.user || !session.accessToken) {
       return NextResponse.json({ error: 'User not authenticated' }, { status: 401 });
     }
@@ -13,8 +43,8 @@ export async function POST(request: NextRequest) {
     
     // 실제 Twitter API 호출 시도
     try {
-      const profileData = await fetchTwitterUserProfile(twitterId, session.accessToken);
-      const tweetsData = await fetchUserTweets(twitterId, session.accessToken);
+      const profileData = await fetchTwitterUserProfile(twitterId!, session.accessToken);
+      const tweetsData = await fetchUserTweets(twitterId!, session.accessToken);
       
       // AI 기반 자기소개 생성
       const enhancedBio = generateAIBio(profileData, tweetsData);
@@ -29,7 +59,7 @@ export async function POST(request: NextRequest) {
     } catch (twitterError) {
       console.log('Twitter API failed, using enhanced mock data:', twitterError);
       // Fallback to enhanced mock data
-      const profileAnalysis = generateEnhancedProfile(username);
+      const profileAnalysis = generateEnhancedProfile(username!);
       return NextResponse.json({ profile: profileAnalysis });
     }
     
@@ -43,7 +73,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function fetchTwitterUserProfile(userId: string, accessToken: string) {
+async function fetchTwitterUserProfile(userId: string, accessToken: string): Promise<TwitterProfile> {
   const response = await fetch(
     `https://api.twitter.com/2/users/${userId}?user.fields=description,public_metrics,profile_image_url,verified,location`,
     {
@@ -61,7 +91,7 @@ async function fetchTwitterUserProfile(userId: string, accessToken: string) {
   return data.data;
 }
 
-async function fetchUserTweets(userId: string, accessToken: string) {
+async function fetchUserTweets(userId: string, accessToken: string): Promise<TwitterTweet[]> {
   const response = await fetch(
     `https://api.twitter.com/2/users/${userId}/tweets?max_results=10&tweet.fields=created_at,public_metrics`,
     {
@@ -79,7 +109,7 @@ async function fetchUserTweets(userId: string, accessToken: string) {
   return data.data || [];
 }
 
-function generateAIBio(profile: any, tweets: any[]) {
+function generateAIBio(profile: TwitterProfile, tweets: TwitterTweet[]): string {
   // 트윗 내용 분석하여 AI 기반 자기소개 생성
   const tweetTexts = tweets.map(tweet => tweet.text).join(' ');
   

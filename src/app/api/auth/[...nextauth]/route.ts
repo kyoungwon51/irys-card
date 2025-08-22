@@ -47,11 +47,12 @@ const handler = NextAuth({
       if (account && profile) {
         token.accessToken = account.access_token
         // Twitter API v2 response 구조에 맞게 수정
-        const userData = (profile as any).data || profile;
-        token.twitterId = userData.id
-        token.username = userData.username
-        token.profileImage = userData.profile_image_url
-        token.displayName = userData.name
+        const userData = (profile as { data?: { id?: string; username?: string; name?: string; profile_image_url?: string }; id?: string; username?: string; name?: string; profile_image_url?: string }).data || profile;
+        const typedUserData = userData as { id?: string; username?: string; name?: string; profile_image_url?: string };
+        token.twitterId = typedUserData.id
+        token.username = typedUserData.username
+        token.profileImage = typedUserData.profile_image_url
+        token.displayName = typedUserData.name
       }
       return token
     },

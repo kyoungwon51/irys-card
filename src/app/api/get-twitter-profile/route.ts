@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 세션에서 액세스 토큰 가져오기
-    const session = await getServerSession() as any;
+    const session = await getServerSession() as { accessToken?: string } | null;
     let accessToken = session?.accessToken;
 
     // 세션에 액세스 토큰이 없으면 앱 전용 Bearer Token 사용 (읽기 전용)
