@@ -18,16 +18,7 @@ interface TwitterProfile {
 
 export default function TwitterCardGenerator() {
   const { data: session } = useSession();
-  const [profile, setProfile] = useState<TwitterProfile | null>({
-    username: 'Zeck',
-    displayName: 'Zeck',
-    profileImage: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Zeck',
-    bio: "Big Poster. Active on X. Can be smart, funny, chaotic or loud. Mastery in the art of shitposting.",
-    followers: 8542,
-    following: 432,
-    verified: false,
-    location: "Crypto Twitter"
-  });
+  const [profile, setProfile] = useState<TwitterProfile | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [inputUsername, setInputUsername] = useState('');
   const cardRef = useRef<HTMLDivElement>(null);
@@ -117,9 +108,42 @@ export default function TwitterCardGenerator() {
 
   if (!profile) return (
     <div className="max-w-4xl mx-auto">
+      {/* Twitter Username Input Section */}
       <div className="mb-8 text-center">
         <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-          <div className="text-white">카드를 로딩 중...</div>
+          <h3 className="text-white text-xl font-semibold mb-4">
+            Twitter 카드 생성기
+          </h3>
+          <p className="text-white/80 mb-6">
+            Twitter 사용자명을 입력하여 Monad Cards 스타일의 카드를 생성하세요.
+          </p>
+          <form onSubmit={handleManualSearch} className="flex gap-2 max-w-md mx-auto">
+            <input
+              type="text"
+              value={inputUsername}
+              onChange={(e) => setInputUsername(e.target.value)}
+              placeholder="Twitter 사용자명 입력 (예: elonmusk)"
+              className="flex-1 px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-white/40 focus:outline-none"
+            />
+            <button
+              type="submit"
+              disabled={isLoading || !inputUsername.trim()}
+              className="px-6 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 text-white rounded-lg font-medium transition-colors"
+            >
+              {isLoading ? '로딩...' : '생성'}
+            </button>
+          </form>
+        </div>
+      </div>
+      
+      {/* 빈 카드 영역 */}
+      <div className="flex flex-col items-center">
+        <div className="w-80 h-[500px] bg-white/5 backdrop-blur-sm border-2 border-dashed border-white/20 rounded-3xl flex items-center justify-center">
+          <div className="text-center text-white/50">
+            <div className="text-6xl mb-4">📱</div>
+            <p className="text-lg font-medium">카드가 여기에 표시됩니다</p>
+            <p className="text-sm mt-2">사용자명을 입력하고 생성 버튼을 눌러주세요</p>
+          </div>
         </div>
       </div>
     </div>
@@ -193,6 +217,11 @@ export default function TwitterCardGenerator() {
                     width={120}
                     height={120}
                     className="w-full h-full object-cover"
+                    unoptimized
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.username}`;
+                    }}
                   />
                 </div>
               </div>
