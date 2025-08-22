@@ -10,13 +10,13 @@ const handler = NextAuth({
       authorization: {
         url: "https://twitter.com/i/oauth2/authorize",
         params: {
-          scope: "users.read tweet.read follows.read",
+          scope: "users.read tweet.read offline.access",
         },
       },
     })
   ],
   secret: process.env.NEXTAUTH_SECRET,
-  debug: true, // 개발 중 디버깅 활성화
+  debug: process.env.NODE_ENV === 'development',
   callbacks: {
     async jwt({ token, account, profile }) {
       if (account && profile) {
@@ -44,7 +44,7 @@ const handler = NextAuth({
     }
   },
   pages: {
-    error: '/auth/error', // 에러 페이지 커스터마이징
+    error: '/auth/error',
   }
 })
 
