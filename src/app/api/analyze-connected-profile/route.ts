@@ -69,9 +69,16 @@ export async function POST(_request: Request) {
       const profileData = await fetchTwitterUserProfile(twitterId!, accessToken);
       console.log('Profile data received:', JSON.stringify(profileData, null, 2));
       
+      console.log('About to fetch tweets with params:', {
+        twitterId: twitterId,
+        hasAccessToken: !!accessToken,
+        bearerTokenExists: !!process.env.TWITTER_BEARER_TOKEN
+      });
+      
       const tweetsData = await fetchUserTweets(twitterId!, accessToken);
       console.log('Tweets data received:', tweetsData?.length, 'tweets');
       console.log('First tweet:', tweetsData?.[0]);
+      console.log('All tweets data:', JSON.stringify(tweetsData, null, 2));
       
       // AI 기반 자기소개 생성
       const enhancedBio = generateAIBio(profileData, tweetsData);
@@ -196,20 +203,31 @@ async function fetchUserTweets(userId: string, accessToken: string | undefined):
   // 사용자 토큰이 없으면 앱 전용 토큰 사용
   const bearerToken = accessToken || process.env.TWITTER_BEARER_TOKEN;
   
+  console.log('fetchUserTweets called with:', {
+    userId: userId,
+    hasAccessToken: !!accessToken,
+    hasBearerToken: !!process.env.TWITTER_BEARER_TOKEN,
+    usingTokenType: accessToken ? 'User token' : 'App token'
+  });
+  
   if (!bearerToken) {
     throw new Error('No access token or bearer token available');
   }
   
   console.log('Fetching tweets with token type:', accessToken ? 'User token' : 'App token');
   
-  const response = await fetch(
-    `https://api.twitter.com/2/users/${userId}/tweets?max_results=50&tweet.fields=created_at,public_metrics,context_annotations&exclude=retweets,replies`,
-    {
+  const twitterUrl = `https://api.twitter.com/2/users/${userId}/tweets?max_results=50&tweet.fields=created_at,public_metrics,context_annotations&exclude=retweets,replies`;
+  console.log('Twitter API URL:', twitterUrl);
+  
+  const response = await fetch(twitterUrl, {
       headers: {
         'Authorization': `Bearer ${bearerToken}`,
       },
     }
   );
+  
+  console.log('Twitter API response status:', response.status);
+  console.log('Twitter API response headers:', Object.fromEntries(response.headers.entries()));
   
   if (!response.ok) {
     const errorText = await response.text();
@@ -218,6 +236,9 @@ async function fetchUserTweets(userId: string, accessToken: string | undefined):
   }
   
   const data = await response.json();
+  console.log('Raw Twitter API response:', JSON.stringify(data, null, 2));
+  console.log('Tweets data from API:', data.data?.length || 0, 'tweets');
+  
   return data.data || [];
 }
 
