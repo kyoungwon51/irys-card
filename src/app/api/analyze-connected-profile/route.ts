@@ -65,6 +65,7 @@ export async function POST() {
       const enhancedProfile = {
         ...profileData,
         description: enhancedBio || profileData.description,
+        tweets: tweetsData?.slice(0, 5) || [], // 최근 5개 트윗만 포함
       };
       
       return NextResponse.json({ profile: enhancedProfile });

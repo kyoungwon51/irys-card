@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
 
     // Twitter API v2로 사용자 정보 가져오기
     const userResponse = await fetch(
-      `https://api.twitter.com/2/users/by/username/${username}?user.fields=description,profile_image_url,public_metrics,verified,location`,
+      `https://api.twitter.com/2/users/by/username/${username}?user.fields=name,description,profile_image_url,public_metrics,verified,location`,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,

@@ -5,6 +5,18 @@ import { signIn, signOut, useSession } from 'next-auth/react';
 import html2canvas from 'html2canvas';
 import Image from 'next/image';
 
+interface TwitterTweet {
+  id: string;
+  text: string;
+  created_at: string;
+  public_metrics: {
+    retweet_count: number;
+    like_count: number;
+    reply_count: number;
+    quote_count: number;
+  };
+}
+
 interface TwitterProfile {
   username: string;
   displayName: string;
@@ -14,6 +26,7 @@ interface TwitterProfile {
   following: number;
   verified?: boolean;
   location?: string;
+  tweets?: TwitterTweet[];
 }
 
 export default function TwitterCardGenerator() {
@@ -43,8 +56,8 @@ export default function TwitterCardGenerator() {
   const fetchTwitterProfile = async (username: string) => {
     setIsLoading(true);
     try {
-      // 먼저 실제 Twitter API 시도
-      let response = await fetch('/api/get-twitter-profile', {
+      // 새로운 AI 분석 API 사용 (트윗 분석 포함)
+      let response = await fetch('/api/analyze-any-profile', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -52,9 +65,21 @@ export default function TwitterCardGenerator() {
         body: JSON.stringify({ username }),
       });
 
-      // OAuth 오류 시 목 데이터 API 사용
+      // AI 분석 실패 시 기본 프로필 API 사용
       if (!response.ok) {
-        console.log('Real Twitter API failed, using mock data...');
+        console.log('AI analysis failed, trying basic profile fetch...');
+        response = await fetch('/api/get-twitter-profile', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ username }),
+        });
+      }
+
+      // 기본 프로필도 실패 시 목 데이터 사용
+      if (!response.ok) {
+        console.log('Basic profile fetch failed, using mock data...');
         response = await fetch('/api/twitter-profile-mock', {
           method: 'POST',
           headers: {
@@ -79,7 +104,8 @@ export default function TwitterCardGenerator() {
         followers: data.profile.public_metrics?.followers_count || 0,
         following: data.profile.public_metrics?.following_count || 0,
         verified: data.profile.verified || false,
-        location: data.profile.location || "Crypto Twitter"
+        location: data.profile.location || "Crypto Twitter",
+        tweets: data.profile.tweets || []
       };
       
       console.log('Profile data received:', data.profile);
@@ -143,7 +169,8 @@ export default function TwitterCardGenerator() {
         followers: data.profile.public_metrics?.followers_count || 0,
         following: data.profile.public_metrics?.following_count || 0,
         verified: data.profile.verified || false,
-        location: data.profile.location || "Crypto Twitter"
+        location: data.profile.location || "Crypto Twitter",
+        tweets: data.profile.tweets || []
       };
       
       console.log('Normalized profile:', normalizedProfile);
@@ -312,7 +339,7 @@ export default function TwitterCardGenerator() {
       <div className="flex flex-col items-center">
         <div 
           ref={cardRef}
-          className="w-80 h-[500px] bg-gradient-to-br from-blue-100 to-purple-100 rounded-3xl p-6 shadow-2xl relative overflow-hidden"
+          className="w-80 h-[700px] bg-gradient-to-br from-blue-100 to-purple-100 rounded-3xl p-6 shadow-2xl relative overflow-hidden"
           style={{
             background: 'linear-gradient(135deg, #50fed6 0%, #3dd5c0 25%, #2bbfaa 50%, #1aa994 75%, #0d9488 100%)',
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1)'
@@ -327,23 +354,26 @@ export default function TwitterCardGenerator() {
           </div>
 
           {/* Card Header */}
-          <div className="relative z-10 flex items-center justify-between mb-6">
-            <h3 className="text-xl font-bold text-black">{profile.displayName}</h3>
-            <div className="w-8 h-8 bg-gradient-to-br from-purple-400 to-blue-500 rounded-lg flex items-center justify-center border border-white/20">
-              <span className="text-white text-lg">✨</span>
+          <div className="relative z-10 mb-4">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-xl font-bold text-black">{profile.displayName}</h3>
+              <div className="w-8 h-8 bg-gradient-to-br from-purple-400 to-blue-500 rounded-lg flex items-center justify-center border border-white/20">
+                <span className="text-white text-lg">✨</span>
+              </div>
             </div>
+            <p className="text-black/60 text-sm">@{profile.username}</p>
           </div>
 
           {/* Profile Image */}
-          <div className="relative z-10 flex justify-center mb-6">
+          <div className="relative z-10 flex justify-center mb-4">
             <div className="relative">
-              <div className="w-32 h-32 rounded-2xl overflow-hidden border-4 border-white/20 bg-gradient-to-br from-purple-400 to-blue-600 p-1">
+              <div className="w-20 h-20 rounded-2xl overflow-hidden border-4 border-white/20 bg-gradient-to-br from-purple-400 to-blue-600 p-1">
                 <div className="w-full h-full rounded-xl overflow-hidden bg-white">
                   <Image
                     src={profile.profileImage}
                     alt={profile.displayName}
-                    width={120}
-                    height={120}
+                    width={80}
+                    height={80}
                     className="w-full h-full object-cover"
                     unoptimized
                     onError={(e) => {
@@ -354,27 +384,52 @@ export default function TwitterCardGenerator() {
                 </div>
               </div>
               {/* Sparkle effects */}
-              <div className="absolute -top-2 -right-2 w-4 h-4 text-yellow-300">✨</div>
-              <div className="absolute -bottom-1 -left-2 w-3 h-3 text-blue-300">💫</div>
+              <div className="absolute -top-1 -right-1 w-3 h-3 text-yellow-300">✨</div>
+              <div className="absolute -bottom-1 -left-1 w-2 h-2 text-blue-300">💫</div>
             </div>
           </div>
 
           {/* Bio Section */}
-          <div className="relative z-10 mb-6">
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+          <div className="relative z-10 mb-4">
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20">
               <div className="flex items-center mb-2">
-                <div className="w-6 h-6 bg-white/20 rounded-lg flex items-center justify-center mr-3">
-                  <span className="text-white text-sm">🔥</span>
+                <div className="w-5 h-5 bg-white/20 rounded-lg flex items-center justify-center mr-2">
+                  <span className="text-white text-xs">🔥</span>
                 </div>
-                <span className="text-black font-medium">
+                <span className="text-black font-medium text-sm">
                   {profile.verified ? "Verified User" : "Big Poster"}
                 </span>
               </div>
-              <p className="text-black/80 text-sm leading-relaxed">
+              <p className="text-black/80 text-xs leading-relaxed">
                 {profile.bio}
               </p>
             </div>
           </div>
+
+          {/* Recent Tweets Section */}
+          {profile.tweets && profile.tweets.length > 0 && (
+            <div className="relative z-10 mb-4">
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20">
+                <h4 className="text-black font-medium text-sm mb-3 flex items-center">
+                  <span className="mr-2">📝</span>
+                  Recent Tweets
+                </h4>
+                <div className="space-y-2 max-h-32 overflow-y-auto">
+                  {profile.tweets.slice(0, 5).map((tweet, index) => (
+                    <div key={tweet.id} className="bg-white/5 rounded-lg p-2 border border-white/10">
+                      <p className="text-black/70 text-xs leading-tight">
+                        {tweet.text.length > 80 ? `${tweet.text.slice(0, 80)}...` : tweet.text}
+                      </p>
+                      <div className="flex items-center mt-1 text-xs text-black/50 space-x-3">
+                        <span>❤️ {tweet.public_metrics.like_count}</span>
+                        <span>🔁 {tweet.public_metrics.retweet_count}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Bottom Section */}
           <div className="absolute bottom-6 left-6 right-6 z-10">
