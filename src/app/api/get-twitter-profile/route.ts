@@ -4,48 +4,28 @@ import { authConfig } from '@/lib/auth'
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('GET TWITTER PROFILE API called');
-    console.log('Request headers:', Object.fromEntries(request.headers.entries()));
-    
-    const body = await request.text();
-    console.log('Raw request body:', body);
-    
-    let username;
-    try {
-      const parsed = JSON.parse(body);
-      username = parsed.username;
-      console.log('Parsed username:', username);
-    } catch (parseError) {
-      console.error('JSON parse error:', parseError);
-      return NextResponse.json({ error: 'Invalid JSON in request body' }, { status: 400 });
-    }
+    const { username } = await request.json()
 
     if (!username) {
-      console.log('No username provided');
       return NextResponse.json({ error: 'Username is required' }, { status: 400 })
     }
 
     // 세션에서 액세스 토큰 가져오기
     const session = await getServerSession(authConfig) as { accessToken?: string } | null;
     let accessToken = session?.accessToken;
-    console.log('Session access token exists:', !!accessToken);
 
     // 세션에 액세스 토큰이 없으면 앱 전용 Bearer Token 사용 (읽기 전용)
     if (!accessToken) {
       accessToken = process.env.TWITTER_BEARER_TOKEN;
-      console.log('Using bearer token, exists:', !!accessToken);
     }
 
     if (!accessToken) {
-      console.log('No access token available');
       return NextResponse.json({ error: 'Twitter API access not available' }, { status: 401 })
     }
 
-    console.log('Making Twitter API request to:', `https://api.twitter.com/2/users/by/username/${username}`);
-    
     // Twitter API v2로 사용자 정보 가져오기
     const userResponse = await fetch(
-      `https://api.twitter.com/2/users/by/username/${username}?user.fields=name,description,profile_image_url,public_metrics,verified,location`,
+      `https://api.twitter.com/2/users/by/username/${username}?user.fields=description,profile_image_url,public_metrics,verified,location`,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -53,20 +33,10 @@ export async function POST(request: NextRequest) {
       }
     )
 
-    console.log('Twitter API response status:', userResponse.status);
-
     if (!userResponse.ok) {
       const errorData = await userResponse.text()
-      console.error('Twitter API Error Details:', {
-        status: userResponse.status,
-        statusText: userResponse.statusText,
-        errorData: errorData
-      });
-      return NextResponse.json({ 
-        error: 'Failed to fetch Twitter profile',
-        details: errorData,
-        status: userResponse.status
-      }, { status: 400 })
+      console.error('Twitter API Error:', errorData)
+      return NextResponse.json({ error: 'Failed to fetch Twitter profile' }, { status: 400 })
     }
 
     const userData = await userResponse.json()
