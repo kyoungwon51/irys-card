@@ -63,6 +63,43 @@ const getRandomSpriteType = () => {
   return SPRITE_TYPES[Math.floor(Math.random() * SPRITE_TYPES.length)];
 };
 
+// 다양한 아바타 스타일 배열
+const AVATAR_STYLES = [
+  'adventurer',      // 모험가 스타일
+  'adventurer-neutral', // 중성적 모험가
+  'avataaars',       // 기본 아바타
+  'big-smile',       // 큰 미소
+  'bottts',          // 로봇 스타일
+  'fun-emoji',       // 재밌는 이모지
+  'icons',           // 아이콘 스타일
+  'identicon',       // 기하학적 패턴
+  'initials',        // 이니셜 기반
+  'lorelei',         // 여성스러운 스타일
+  'lorelei-neutral', // 중성적 로렐라이
+  'micah',           // 미카 스타일
+  'miniavs',         // 미니 아바타
+  'open-peeps',      // 오픈 핍스
+  'personas',        // 페르소나
+  'pixel-art',       // 픽셀 아트
+  'pixel-art-neutral' // 중성 픽셀 아트
+];
+
+// 랜덤 아바타 스타일 선택 함수
+const getRandomAvatarStyle = () => {
+  return AVATAR_STYLES[Math.floor(Math.random() * AVATAR_STYLES.length)];
+};
+
+// 프로필 이미지를 애니메/아바타 스타일로 변환하는 함수
+const getStylizedProfileImage = (profile: TwitterProfile) => {
+  const style = getRandomAvatarStyle();
+  const seed = profile.username + profile.displayName; // 더 유니크한 시드
+  
+  // 추가 파라미터로 더 다양한 아바타 생성
+  const backgroundColor = ['b6e3f4', 'c0aede', 'd1d4f9', 'ffd5dc', 'ffdfbf'][Math.floor(Math.random() * 5)];
+  
+  return `https://api.dicebear.com/7.x/${style}/svg?seed=${encodeURIComponent(seed)}&backgroundColor=${backgroundColor}&radius=20`;
+};
+
 interface TwitterTweet {
   id: string;
   text: string;
@@ -93,6 +130,7 @@ export default function TwitterCardGenerator() {
   const [isLoading, setIsLoading] = useState(false);
   const [inputUsername, setInputUsername] = useState('');
   const [hasTwitterCredentials, setHasTwitterCredentials] = useState(false);
+  const [useStylizedAvatar, setUseStylizedAvatar] = useState(true); // 기본적으로 스타일화된 아바타 사용
   const cardRef = useRef<HTMLDivElement>(null);
 
   // OAuth 상태 확인
@@ -395,6 +433,27 @@ export default function TwitterCardGenerator() {
 
       {/* Card Preview */}
       <div className="flex flex-col items-center">
+        {/* Card Controls */}
+        {profile && (
+          <div className="mb-4 flex gap-2">
+            <button
+              onClick={() => setUseStylizedAvatar(!useStylizedAvatar)}
+              className="px-4 py-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white rounded-lg text-sm border border-white/20 transition-all duration-200"
+            >
+              {useStylizedAvatar ? "📷 원본 이미지" : "🎨 아바타 스타일"}
+            </button>
+            <button
+              onClick={() => {
+                // 강제로 컴포넌트 리렌더링을 위해 key를 변경
+                setProfile({...profile});
+              }}
+              className="px-4 py-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white rounded-lg text-sm border border-white/20 transition-all duration-200"
+            >
+              🔄 새 아바타
+            </button>
+          </div>
+        )}
+        
         <div 
           ref={cardRef}
           className="w-80 h-[600px] bg-gradient-to-br from-blue-100 to-purple-100 rounded-3xl p-6 shadow-2xl relative overflow-hidden transform transition-all duration-300 hover:scale-105 hover:rotate-1 hover:shadow-3xl"
@@ -445,7 +504,7 @@ export default function TwitterCardGenerator() {
               <div className="w-28 h-28 rounded-2xl overflow-hidden border-4 border-white/20 bg-gradient-to-br from-purple-400 to-blue-600 p-1">
                 <div className="w-full h-full rounded-xl overflow-hidden bg-white">
                   <Image
-                    src={profile.profileImage}
+                    src={useStylizedAvatar ? getStylizedProfileImage(profile) : profile.profileImage}
                     alt={profile.displayName}
                     width={112}
                     height={112}
@@ -453,7 +512,8 @@ export default function TwitterCardGenerator() {
                     unoptimized
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
-                      target.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.username}`;
+                      // 에러 시 스타일화된 아바타로 fallback
+                      target.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.username}&backgroundColor=b6e3f4&radius=20`;
                     }}
                   />
                 </div>
@@ -461,6 +521,17 @@ export default function TwitterCardGenerator() {
               {/* Sparkle effects */}
               <div className="absolute -top-1 -right-1 w-4 h-4 text-yellow-300">✨</div>
               <div className="absolute -bottom-1 -left-1 w-3 h-3 text-blue-300">💫</div>
+              
+              {/* Avatar Style Toggle Button */}
+              <button
+                onClick={() => setUseStylizedAvatar(!useStylizedAvatar)}
+                className="absolute -bottom-2 -right-2 w-6 h-6 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/40 hover:bg-white transition-all duration-200 hover:scale-110"
+                title={useStylizedAvatar ? "원본 이미지 보기" : "아바타 스타일 보기"}
+              >
+                <span className="text-xs">
+                  {useStylizedAvatar ? "📷" : "🎨"}
+                </span>
+              </button>
             </div>
           </div>
 
