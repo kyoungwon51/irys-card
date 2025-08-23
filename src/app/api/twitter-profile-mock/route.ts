@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
       username: username,
       name: `${username.charAt(0).toUpperCase() + username.slice(1)} User`,
       description: `크리에이터이자 개발자입니다. Web3와 AI에 관심이 많습니다. 🚀 #BuildInPublic`,
-      profile_image_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
+      profile_image_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}&backgroundColor=50fed6&size=400`,
       public_metrics: {
         followers_count: Math.floor(Math.random() * 10000) + 100,
         following_count: Math.floor(Math.random() * 1000) + 50,

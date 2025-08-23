@@ -2,6 +2,19 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authConfig } from '@/lib/auth'
 
+// Twitter 프로필 이미지를 고화질로 변환하는 함수
+function getHighQualityProfileImage(profileImageUrl: string | undefined): string {
+  if (!profileImageUrl) {
+    return '';
+  }
+  
+  // _normal을 제거하여 원본 크기 이미지 가져오기
+  // 또는 _400x400 같은 더 큰 크기로 교체
+  return profileImageUrl
+    .replace('_normal', '_400x400')
+    .replace('_bigger', '_400x400');
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { username } = await request.json()
@@ -49,7 +62,7 @@ export async function POST(request: NextRequest) {
       username: userData.data.username,
       name: userData.data.name,
       description: userData.data.description || '',
-      profile_image_url: userData.data.profile_image_url?.replace('_normal', '_400x400') || userData.data.profile_image_url,
+      profile_image_url: getHighQualityProfileImage(userData.data.profile_image_url),
       public_metrics: userData.data.public_metrics || {
         followers_count: 0,
         following_count: 0

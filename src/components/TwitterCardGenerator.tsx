@@ -22,20 +22,7 @@ export default function TwitterCardGenerator() {
   const [isLoading, setIsLoading] = useState(false);
   const [inputUsername, setInputUsername] = useState('');
   const [hasTwitterCredentials, setHasTwitterCredentials] = useState(false);
-  const [isConverting, setIsConverting] = useState(false);
-  const [convertedImage, setConvertedImage] = useState<string | null>(null);
-  const [selectedStyle, setSelectedStyle] = useState<string>('anime');
-  const [cssEffect, setCssEffect] = useState<string>('');
   const cardRef = useRef<HTMLDivElement>(null);
-
-  // 사용 가능한 스타일들
-  const availableStyles = [
-    { id: 'anime', name: '🎌 애니메', description: '일본 애니메이션 스타일' },
-    { id: 'cartoon', name: '🎨 카툰', description: '픽사/디즈니 스타일' },
-    { id: 'pixel', name: '🕹️ 픽셀', description: '8비트 레트로 게임' },
-    { id: 'oil_painting', name: '🖼️ 유화', description: '고전 회화 스타일' },
-    { id: 'cyberpunk', name: '🤖 사이버펑크', description: '미래형 네온 스타일' }
-  ];
 
   // OAuth 상태 확인
   useEffect(() => {
@@ -82,12 +69,13 @@ export default function TwitterCardGenerator() {
       }
       
       const data = await response.json();
+      console.log('API Response:', data); // 디버깅용
       
       // 데이터 형식 통일
       const normalizedProfile = {
         username: data.profile.username || username,
         displayName: data.profile.name || data.profile.displayName || data.profile.username,
-        profileImage: data.profile.profile_image_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
+        profileImage: data.profile.profile_image_url || data.profile.profileImage || `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}&backgroundColor=50fed6`,
         bio: data.profile.description || "Creator and developer passionate about technology 🚀",
         followers: data.profile.public_metrics?.followers_count || 0,
         following: data.profile.public_metrics?.following_count || 0,
@@ -116,55 +104,6 @@ export default function TwitterCardGenerator() {
     if (inputUsername.trim()) {
       fetchTwitterProfile(inputUsername.trim().replace('@', ''));
     }
-  };
-
-  // 프로필 이미지 스타일 변환 함수
-  const convertImageStyle = async (style: string) => {
-    if (!profile?.profileImage) return;
-    
-    setIsConverting(true);
-    setSelectedStyle(style);
-    
-    try {
-      const response = await fetch('/api/convert-to-anime', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          imageUrl: profile.profileImage,
-          style: style,
-          username: profile.username
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Style conversion failed');
-      }
-
-      const data = await response.json();
-      console.log('Style conversion result:', data);
-      
-      setConvertedImage(data.convertedImageUrl);
-      
-      // CSS 효과가 있다면 적용
-      if (data.cssEffect) {
-        setCssEffect(data.cssEffect);
-      }
-      
-    } catch (error) {
-      console.error('Style conversion error:', error);
-      alert('스타일 변환에 실패했습니다. 다시 시도해주세요.');
-    } finally {
-      setIsConverting(false);
-    }
-  };
-
-  // 원본 이미지로 되돌리기
-  const resetToOriginal = () => {
-    setConvertedImage(null);
-    setCssEffect('');
-    setSelectedStyle('');
   };
 
   const handleConnectedUserProfile = async () => {
@@ -402,18 +341,19 @@ export default function TwitterCardGenerator() {
               <div className="w-32 h-32 rounded-2xl overflow-hidden border-4 border-white/20 bg-gradient-to-br from-purple-400 to-blue-600 p-1">
                 <div className="w-full h-full rounded-xl overflow-hidden bg-white">
                   <Image
-                    src={convertedImage || profile.profileImage}
+                    src={profile.profileImage}
                     alt={profile.displayName}
                     width={120}
                     height={120}
                     className="w-full h-full object-cover"
-                    style={{
-                      filter: cssEffect || 'none'
-                    }}
                     unoptimized
                     onError={(e) => {
+                      console.log('Image loading error:', profile.profileImage);
                       const target = e.target as HTMLImageElement;
-                      target.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.username}`;
+                      target.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.username}&backgroundColor=50fed6`;
+                    }}
+                    onLoad={() => {
+                      console.log('Image loaded successfully:', profile.profileImage);
                     }}
                   />
                 </div>
@@ -421,13 +361,6 @@ export default function TwitterCardGenerator() {
               {/* Sparkle effects */}
               <div className="absolute -top-2 -right-2 w-4 h-4 text-yellow-300">✨</div>
               <div className="absolute -bottom-1 -left-2 w-3 h-3 text-blue-300">💫</div>
-              
-              {/* Style indicator */}
-              {convertedImage && (
-                <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-purple-600 text-white text-xs px-2 py-1 rounded-full">
-                  {availableStyles.find(s => s.id === selectedStyle)?.name || selectedStyle}
-                </div>
-              )}
             </div>
           </div>
 
@@ -474,45 +407,6 @@ export default function TwitterCardGenerator() {
           <div className="absolute bottom-20 left-8 w-1.5 h-1.5 bg-white/25 rounded-full animate-pulse delay-150"></div>
           <div className="absolute top-1/3 left-4 w-1 h-1 bg-purple-300/40 rounded-full animate-pulse delay-500"></div>
           <div className="absolute top-2/3 right-6 w-1 h-1 bg-blue-300/40 rounded-full animate-pulse delay-700"></div>
-        </div>
-
-        {/* Style Controls */}
-        <div className="mt-6 mb-4">
-          <div className="text-center mb-3">
-            <h4 className="text-white font-medium text-sm mb-2">🎨 이미지 스타일 변환</h4>
-            <div className="flex flex-wrap justify-center gap-2">
-              {availableStyles.map((style) => (
-                <button
-                  key={style.id}
-                  onClick={() => convertImageStyle(style.id)}
-                  disabled={isConverting}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
-                    selectedStyle === style.id
-                      ? 'bg-purple-600 text-white shadow-lg scale-105'
-                      : 'bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm'
-                  } ${isConverting ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'}`}
-                  title={style.description}
-                >
-                  {isConverting && selectedStyle === style.id ? (
-                    <div className="flex items-center gap-1">
-                      <div className="w-3 h-3 border border-white/30 border-t-white rounded-full animate-spin"></div>
-                      <span>{style.name}</span>
-                    </div>
-                  ) : (
-                    style.name
-                  )}
-                </button>
-              ))}
-              {convertedImage && (
-                <button
-                  onClick={resetToOriginal}
-                  className="px-3 py-1.5 bg-gray-600 hover:bg-gray-700 text-white rounded-lg text-xs font-medium transition-colors"
-                >
-                  📷 원본
-                </button>
-              )}
-            </div>
-          </div>
         </div>
 
         {/* Download Button */}
