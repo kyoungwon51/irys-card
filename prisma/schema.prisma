@@ -1,0 +1,35 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model UserCard {
+  id          String   @id @default(cuid())
+  username    String   @unique
+  displayName String
+  userNumber  Int      @unique
+  profileImage String?
+  bio         String?
+  followers   Int?
+  following   Int?
+  verified    Boolean  @default(false)
+  location    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("user_cards")
+}
+
+model CardCounter {
+  id      String @id @default("singleton")
+  counter Int    @default(0)
+
+  @@map("card_counter")
+}

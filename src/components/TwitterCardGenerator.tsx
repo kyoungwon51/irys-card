@@ -122,74 +122,68 @@ export default function TwitterCardGenerator() {
     }
   };
 
-  // 사용자 번호 관리 함수들
-  const getUserNumber = (username: string): number => {
+  // 사용자 번호 관리 함수들 - 데이터베이스 API 사용
+  const getUserNumber = async (profile: TwitterProfile): Promise<number> => {
     try {
-      // localStorage 접근 가능 여부 확인
-      if (typeof window === 'undefined' || !window.localStorage) {
-        console.warn('localStorage not available');
-        return 1;
+      console.log('=== getUserNumber called for:', profile.username, '===');
+      
+      const response = await fetch('/api/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: profile.username,
+          displayName: profile.displayName,
+          profileImage: profile.profileImage,
+          bio: profile.bio,
+          followers: profile.followers,
+          following: profile.following,
+          verified: profile.verified,
+          location: profile.location
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`API request failed: ${response.status}`);
       }
 
-      console.log('=== getUserNumber called for:', username, '===');
+      const data = await response.json();
       
-      // 기존 사용자 번호 확인
-      const savedUsersStr = localStorage.getItem('irys-user-numbers');
-      const savedUsers = savedUsersStr ? JSON.parse(savedUsersStr) : {};
-      console.log('Existing saved users:', savedUsers);
-      
-      // 이미 번호가 있는 사용자인지 확인
-      if (savedUsers[username]) {
-        console.log('✅ Found existing number for', username, ':', savedUsers[username]);
-        return savedUsers[username];
+      if (data.success) {
+        console.log(data.isNewUser ? '🆕 New user registered!' : '✅ Existing user found');
+        console.log('User number:', data.userNumber);
+        return data.userNumber;
+      } else {
+        throw new Error(data.error || 'Unknown error');
       }
-      
-      // 새 사용자 - 카운터 증가
-      const counterStr = localStorage.getItem('irys-card-counter');
-      const currentCounter = counterStr ? parseInt(counterStr) : 0;
-      const newNumber = currentCounter + 1;
-      
-      console.log('🆕 New user detected!');
-      console.log('Previous counter:', currentCounter);
-      console.log('Assigning number:', newNumber, 'to user:', username);
-      
-      // 카운터 업데이트
-      localStorage.setItem('irys-card-counter', newNumber.toString());
-      
-      // 사용자 번호 저장
-      savedUsers[username] = newNumber;
-      localStorage.setItem('irys-user-numbers', JSON.stringify(savedUsers));
-      
-      console.log('✅ Updated counter to:', newNumber);
-      console.log('✅ Updated users list:', savedUsers);
-      
-      return newNumber;
       
     } catch (error) {
       console.error('❌ Error in getUserNumber:', error);
+      // 에러 시 기본값 반환
       return 1;
     }
   };
 
-  // 디버깅을 위한 localStorage 확인 함수
-  const checkLocalStorage = () => {
-    const counter = localStorage.getItem('irys-card-counter');
-    const users = localStorage.getItem('irys-user-numbers');
-    console.log('Current card counter:', counter);
-    console.log('User numbers:', users);
-    if (users) {
-      try {
-        const parsed = JSON.parse(users);
-        console.log('Parsed user numbers:', parsed);
-      } catch (e) {
-        console.error('Failed to parse user numbers:', e);
+  // 데이터베이스 통계 조회 함수
+  const checkDatabaseStats = async () => {
+    try {
+      const response = await fetch('/api/stats');
+      const data = await response.json();
+      if (data.success) {
+        console.log('=== DATABASE STATS ===');
+        console.log('Total users:', data.stats.totalUsers);
+        console.log('Current counter:', data.stats.currentCounter);
+        console.log('Recent users:', data.stats.recentUsers);
       }
+    } catch (error) {
+      console.error('Failed to fetch database stats:', error);
     }
   };
 
-  // 컴포넌트 마운트 시 localStorage 확인
+  // 컴포넌트 마운트 시 데이터베이스 상태 확인
   useEffect(() => {
-    checkLocalStorage();
+    checkDatabaseStats();
   }, []);
 
   // userNumber 변경 추적
@@ -282,7 +276,7 @@ export default function TwitterCardGenerator() {
       setCurrentSprite(getSpriteDescriptionByUsername(normalizedProfile.username)); // 아이디 기반 스프라이트 선택
       
       console.log('🔢 About to get user number for:', normalizedProfile.username);
-      const userNum = getUserNumber(normalizedProfile.username);
+      const userNum = await getUserNumber(normalizedProfile);
       console.log('🔢 Got user number:', userNum, 'for user:', normalizedProfile.username);
       console.log('🔢 Setting userNumber state to:', userNum);
       setUserNumber(userNum); // 사용자 번호 설정
@@ -361,7 +355,7 @@ export default function TwitterCardGenerator() {
       setCurrentSprite(getSpriteDescriptionByUsername(normalizedProfile.username)); // 아이디 기반 스프라이트 선택
       
       console.log('🔢 About to get user number for:', normalizedProfile.username);
-      const userNum = getUserNumber(normalizedProfile.username);
+      const userNum = await getUserNumber(normalizedProfile);
       console.log('🔢 Got user number:', userNum, 'for user:', normalizedProfile.username);
       console.log('🔢 Setting userNumber state to:', userNum);
       setUserNumber(userNum); // 사용자 번호 설정
@@ -485,46 +479,46 @@ export default function TwitterCardGenerator() {
       {/* 임시 디버깅 버튼 */}
       <div className="text-center mb-4">
         <button
-          onClick={() => {
-            // 모든 관련 localStorage 항목 제거
-            localStorage.removeItem('irys-card-counter');
-            localStorage.removeItem('irys-user-numbers');
-            localStorage.removeItem('irys-connected-users'); // 이전 키도 제거
-            console.log('=== ALL DATA CLEARED ===');
-            console.log('Card counter cleared');
-            console.log('User numbers cleared');
-            console.log('Connected users cleared');
-            checkLocalStorage();
-            // 현재 사용자 번호도 초기화
-            setUserNumber(1);
-          }}
-          className="px-4 py-2 bg-red-500 text-white rounded text-sm mr-2"
-        >
-          🗑️ RESET ALL
-        </button>
-        <button
-          onClick={checkLocalStorage}
-          className="px-4 py-2 bg-blue-500 text-white rounded text-sm"
-        >
-          📊 Check Data
-        </button>
-        <button
-          onClick={() => {
-            if (profile?.username) {
-              // 현재 사용자를 강제로 새 번호로 재할당
-              const savedUsers = JSON.parse(localStorage.getItem('irys-user-numbers') || '{}');
-              delete savedUsers[profile.username]; // 기존 번호 제거
-              localStorage.setItem('irys-user-numbers', JSON.stringify(savedUsers));
-              
-              const newNumber = getUserNumber(profile.username);
-              setUserNumber(newNumber);
-              console.log('=== FORCE NEW NUMBER ===');
-              console.log('Assigned new number:', newNumber, 'to current user:', profile.username);
+          onClick={async () => {
+            try {
+              const response = await fetch('/api/stats');
+              const data = await response.json();
+              if (data.success) {
+                console.log('=== DATABASE STATS ===');
+                console.log('Total users:', data.stats.totalUsers);
+                console.log('Current counter:', data.stats.currentCounter);
+                console.log('Recent users:', data.stats.recentUsers);
+                alert(`Database Stats:\nTotal Users: ${data.stats.totalUsers}\nCurrent Counter: ${data.stats.currentCounter}`);
+              }
+            } catch (error) {
+              console.error('Failed to fetch stats:', error);
             }
           }}
-          className="px-4 py-2 bg-green-500 text-white rounded text-sm ml-2"
+          className="px-4 py-2 bg-blue-500 text-white rounded text-sm mr-2"
         >
-          🔄 Force New #
+          📊 DB Stats
+        </button>
+        <button
+          onClick={async () => {
+            if (profile?.username) {
+              try {
+                const response = await fetch(`/api/users?username=${profile.username}`);
+                const data = await response.json();
+                if (data.success) {
+                  console.log('=== USER INFO ===');
+                  console.log('User data:', data.user);
+                  alert(`User #${data.user.userNumber}: ${data.user.displayName}\nCreated: ${new Date(data.user.createdAt).toLocaleString()}`);
+                } else {
+                  alert('User not found in database');
+                }
+              } catch (error) {
+                console.error('Failed to fetch user info:', error);
+              }
+            }
+          }}
+          className="px-4 py-2 bg-green-500 text-white rounded text-sm"
+        >
+          � User Info
         </button>
       </div>
       
