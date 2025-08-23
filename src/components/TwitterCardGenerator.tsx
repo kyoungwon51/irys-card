@@ -51,8 +51,34 @@ export default function TwitterCardGenerator() {
   const [isLoading, setIsLoading] = useState(false);
   const [inputUsername, setInputUsername] = useState('');
   const [hasTwitterCredentials, setHasTwitterCredentials] = useState(false);
-  const [currentSprite, setCurrentSprite] = useState(() => getRandomSpriteDescription());
+  const [currentSprite, setCurrentSprite] = useState(getRandomSpriteDescription());
+  
+  // 마우스 움직임 효과를 위한 state
+  const [cardRotation, setCardRotation] = useState({ x: 0, y: 0 });
+  
   const cardRef = useRef<HTMLDivElement>(null);
+
+  // 마우스 움직임에 따른 카드 틸트 효과
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    
+    const rect = cardRef.current.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    
+    const mouseX = e.clientX - centerX;
+    const mouseY = e.clientY - centerY;
+    
+    // 회전 강도 조절 (값이 클수록 더 많이 기울어짐)
+    const rotateX = (mouseY / (rect.height / 2)) * -10;
+    const rotateY = (mouseX / (rect.width / 2)) * 10;
+    
+    setCardRotation({ x: rotateX, y: rotateY });
+  };
+  
+  const handleMouseLeave = () => {
+    setCardRotation({ x: 0, y: 0 });
+  };
 
   // OAuth 상태 확인
   useEffect(() => {
@@ -341,7 +367,16 @@ export default function TwitterCardGenerator() {
       
       {/* 빈 카드 영역 */}
       <div className="flex flex-col items-center">
-        <div className="w-80 h-[500px] bg-white backdrop-blur-lg border-2 border-emerald-200/50 rounded-3xl flex items-center justify-center shadow-2xl hover:shadow-emerald-200/50 transition-all duration-300 hover:scale-105">
+        <div 
+          className="w-80 h-[500px] bg-white backdrop-blur-lg border-2 border-emerald-200/50 rounded-3xl flex items-center justify-center shadow-2xl hover:shadow-emerald-200/50 transition-all duration-300"
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
+          style={{
+            transform: `perspective(1000px) rotateX(${cardRotation.x}deg) rotateY(${cardRotation.y}deg)`,
+            transformStyle: 'preserve-3d',
+            transition: 'transform 0.1s ease-out',
+          }}
+        >
           <div className="text-center text-emerald-800/60">
             <div className="text-6xl mb-4">📱</div>
             <p className="text-lg font-medium">카드가 여기에 표시됩니다</p>
@@ -358,10 +393,15 @@ export default function TwitterCardGenerator() {
       <div className="flex flex-col items-center">
         <div 
           ref={cardRef}
-          className="w-80 h-[500px] bg-white rounded-3xl p-6 shadow-2xl relative overflow-hidden border-2 border-emerald-200/50 hover:border-emerald-300/70 transition-all duration-300 hover:scale-105 hover:shadow-emerald-200/50"
+          className="w-80 h-[500px] bg-white rounded-3xl p-6 shadow-2xl relative overflow-hidden border-2 border-emerald-200/50 hover:border-emerald-300/70 transition-all duration-300 hover:shadow-emerald-200/50"
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
           style={{
+            transform: `perspective(1000px) rotateX(${cardRotation.x}deg) rotateY(${cardRotation.y}deg)`,
+            transformStyle: 'preserve-3d',
+            transition: 'transform 0.1s ease-out',
             background: 'linear-gradient(135deg, #50fed6 0%, #3dd5c0 25%, #2bbfaa 50%, #1aa994 75%, #0d9488 100%)',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1)'
+            boxShadow: `0 ${25 + Math.abs(cardRotation.x) * 2}px ${50 + Math.abs(cardRotation.y) * 2}px -12px rgba(0, 0, 0, ${0.25 + Math.abs(cardRotation.x + cardRotation.y) * 0.01}), 0 0 0 1px rgba(255, 255, 255, 0.1)`
           }}
         >
           {/* Background Pattern */}
@@ -434,25 +474,7 @@ export default function TwitterCardGenerator() {
             </div>
           </div>
 
-          {/* Bottom Section */}
-          <div className="absolute bottom-6 left-6 right-6 z-10">
-            <div className="text-center mb-4">
-              <p className="text-black/80 text-sm font-medium tracking-wide">
-                IRYS CARDS
-              </p>
-              <p className="text-black/60 text-xs mt-1">
-                &quot;A token of appreciation for Crypto Twitter&quot;
-              </p>
-            </div>
-            <div className="flex justify-center">
-              <div className="bg-black/20 backdrop-blur-sm rounded-full px-4 py-2 border border-white/10">
-                <span className="text-white text-sm font-medium flex items-center gap-2">
-                  <span>Signed in as</span>
-                  <span className="text-purple-300">{profile.username}</span>
-                </span>
-              </div>
-            </div>
-          </div>
+          {/* 애니메이션 점들 */}
 
           {/* Decorative sparkles */}
           <div className="absolute top-4 right-4 w-2 h-2 bg-emerald-300/40 rounded-full animate-pulse"></div>
@@ -470,24 +492,6 @@ export default function TwitterCardGenerator() {
           <span>⬇️</span>
           Download Card
         </button>
-
-        {/* Card Info */}
-        <div className="text-center text-white/70 mt-6 max-w-md">
-          <p className="mb-2">🎨 Irys Cards based on real Twitter profiles</p>
-          <p className="text-sm">
-            {session ? 
-              'Generate cards using your real Twitter profile information' : 
-              'Connect Twitter and create cards with your real profile'
-            }
-          </p>
-          {profile && (
-            <div className="mt-4 p-3 bg-green-500/20 border border-green-500/30 rounded-lg">
-              <p className="text-green-200 text-xs">
-                ✅ Card generated with real profile information from @{profile.username}
-              </p>
-            </div>
-          )}
-        </div>
       </div>
     </div>
   );
