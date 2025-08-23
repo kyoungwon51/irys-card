@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import OpenAI from 'openai'
 
-const openai = new OpenAI({
+const openai = process.env.OPENAI_API_KEY ? new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-})
+}) : null;
 
 interface TwitterApiResponse {
   data: {
@@ -94,6 +94,13 @@ ${tweetTexts}
   "cardDescription": "카드에 들어갈 간단한 소개 (50자 이내)"
 }
 `
+
+    if (!openai) {
+      return NextResponse.json(
+        { error: 'OpenAI API key not configured' },
+        { status: 500 }
+      )
+    }
 
     const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
