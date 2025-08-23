@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { signIn, signOut, useSession } from 'next-auth/react';
-import html2canvas from 'html2canvas';
 import Image from 'next/image';
 
 interface TwitterProfile {
@@ -237,22 +236,6 @@ export default function TwitterCardGenerator() {
     }
   };
 
-  const downloadCard = async () => {
-    if (cardRef.current) {
-      const canvas = await html2canvas(cardRef.current, {
-        backgroundColor: null,
-        scale: 2,
-        useCORS: true
-      });
-      
-      const dataUrl = canvas.toDataURL('image/png');
-      const link = document.createElement('a');
-      link.download = `${profile?.username}-irys-card.png`;
-      link.href = dataUrl;
-      link.click();
-    }
-  };
-
   if (!profile) return (
     <div className="max-w-4xl mx-auto">
       {/* Twitter Connection Section - 연결되지 않았을 때만 표시 */}
@@ -483,15 +466,6 @@ export default function TwitterCardGenerator() {
           <div className="absolute top-1/3 left-4 w-1 h-1 bg-purple-300/40 rounded-full animate-pulse delay-500"></div>
           <div className="absolute top-2/3 right-6 w-1 h-1 bg-blue-300/40 rounded-full animate-pulse delay-700"></div>
         </div>
-
-        {/* Download Button */}
-        <button
-          onClick={downloadCard}
-          className="mt-6 px-8 py-3 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition-colors flex items-center gap-2 shadow-lg hover:shadow-emerald-200/50"
-        >
-          <span>⬇️</span>
-          Download Card
-        </button>
       </div>
     </div>
   );
