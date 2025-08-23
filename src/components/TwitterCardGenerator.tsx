@@ -70,30 +70,58 @@ export default function TwitterCardGenerator() {
   
   // 마우스 움직임 효과를 위한 state
   const [cardRotation, setCardRotation] = useState({ x: 0, y: 0 });
+  const [isHovering, setIsHovering] = useState(false);
   
   const cardRef = useRef<HTMLDivElement>(null);
+  const animationFrameRef = useRef<number>();
 
-  // 마우스 움직임에 따른 카드 틸트 효과
+  // 마우스 움직임에 따른 카드 틸트 효과 (개선된 버전)
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!cardRef.current) return;
     
-    const rect = cardRef.current.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
+    // 이전 애니메이션 프레임 취소
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+    }
     
-    const mouseX = e.clientX - centerX;
-    const mouseY = e.clientY - centerY;
-    
-    // 회전 강도 조절 (값이 클수록 더 많이 기울어짐)
-    const rotateX = (mouseY / (rect.height / 2)) * -10;
-    const rotateY = (mouseX / (rect.width / 2)) * 10;
-    
-    setCardRotation({ x: rotateX, y: rotateY });
+    animationFrameRef.current = requestAnimationFrame(() => {
+      if (!cardRef.current) return;
+      
+      const rect = cardRef.current.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      
+      const mouseX = e.clientX - centerX;
+      const mouseY = e.clientY - centerY;
+      
+      // 회전 강도 조절 (더 부드럽게)
+      const rotateX = Math.max(-15, Math.min(15, (mouseY / (rect.height / 2)) * -8));
+      const rotateY = Math.max(-15, Math.min(15, (mouseX / (rect.width / 2)) * 8));
+      
+      setCardRotation({ x: rotateX, y: rotateY });
+    });
+  };
+  
+  const handleMouseEnter = () => {
+    setIsHovering(true);
   };
   
   const handleMouseLeave = () => {
+    setIsHovering(false);
     setCardRotation({ x: 0, y: 0 });
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+    }
   };
+
+  // cleanup 함수
+  useEffect(() => {
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, []);
 
   // OAuth 상태 확인
   useEffect(() => {
@@ -254,6 +282,19 @@ export default function TwitterCardGenerator() {
 
   if (!profile) return (
     <div className="max-w-4xl mx-auto">
+      {/* IRYS Logo */}
+      <div className="text-center mb-12">
+        <div className="flex justify-center">
+          <Image 
+            src="/iryslogo.png" 
+            alt="IRYS" 
+            width={300}
+            height={75}
+            className="w-72 h-auto"
+          />
+        </div>
+      </div>
+      
       {/* Twitter Connection Section - 연결되지 않았을 때만 표시 */}
       {!session && (
         <div className="mb-8 text-center">
@@ -369,7 +410,7 @@ export default function TwitterCardGenerator() {
   return (
     <div className="max-w-4xl mx-auto">
       {/* IRYS Logo */}
-      <div className="text-center mb-6">
+      <div className="text-center mb-12">
         <div className="flex justify-center">
           <Image 
             src="/iryslogo.png" 
@@ -387,11 +428,12 @@ export default function TwitterCardGenerator() {
           ref={cardRef}
           className="w-80 h-[500px] bg-white rounded-3xl p-6 shadow-2xl relative overflow-hidden border-2 border-emerald-200/50 hover:border-emerald-300/70 transition-all duration-300 hover:shadow-emerald-200/50"
           onMouseMove={handleMouseMove}
+          onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
           style={{
             transform: `perspective(1000px) rotateX(${cardRotation.x}deg) rotateY(${cardRotation.y}deg)`,
             transformStyle: 'preserve-3d',
-            transition: 'transform 0.1s ease-out',
+            transition: isHovering ? 'transform 0.05s ease-out, border-color 0.3s ease, box-shadow 0.3s ease' : 'transform 0.5s ease-out, border-color 0.3s ease, box-shadow 0.3s ease',
             background: 'white',
             boxShadow: `0 ${25 + Math.abs(cardRotation.x) * 2}px ${50 + Math.abs(cardRotation.y) * 2}px -12px rgba(0, 0, 0, ${0.25 + Math.abs(cardRotation.x + cardRotation.y) * 0.01}), 0 0 0 1px rgba(255, 255, 255, 0.1)`
           }}
@@ -408,7 +450,6 @@ export default function TwitterCardGenerator() {
           <div className="relative z-10 flex items-center justify-between mb-6">
             <h3 className="text-xl font-bold text-black">{profile.displayName}</h3>
             <div className="w-8 h-8 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-lg flex items-center justify-center border border-emerald-200/50">
-              <span className="text-white text-lg">✨</span>
             </div>
           </div>
 
@@ -435,9 +476,6 @@ export default function TwitterCardGenerator() {
                   />
                 </div>
               </div>
-              {/* Sparkle effects */}
-              <div className="absolute -top-2 -right-2 w-4 h-4 text-yellow-300">✨</div>
-              <div className="absolute -bottom-1 -left-2 w-3 h-3 text-blue-300">💫</div>
             </div>
           </div>
 
@@ -446,7 +484,6 @@ export default function TwitterCardGenerator() {
             <div className="bg-emerald-50/80 backdrop-blur-sm rounded-xl p-4 border border-emerald-200/50">
               <div className="flex items-center justify-center">
                 <div className="w-6 h-6 bg-emerald-100 rounded-lg flex items-center justify-center mr-3">
-                  <span className="text-white text-sm">🔥</span>
                 </div>
                 <div className="text-center">
                   {profile.verified ? (
@@ -466,14 +503,40 @@ export default function TwitterCardGenerator() {
             </div>
           </div>
 
-          {/* 애니메이션 점들 */}
-
-          {/* Decorative sparkles */}
-          <div className="absolute top-4 right-4 w-2 h-2 bg-emerald-300/40 rounded-full animate-pulse"></div>
-          <div className="absolute top-8 right-8 w-1 h-1 bg-emerald-200/30 rounded-full animate-pulse delay-300"></div>
-          <div className="absolute bottom-20 left-8 w-1.5 h-1.5 bg-emerald-300/35 rounded-full animate-pulse delay-150"></div>
-          <div className="absolute top-1/3 left-4 w-1 h-1 bg-purple-300/40 rounded-full animate-pulse delay-500"></div>
-          <div className="absolute top-2/3 right-6 w-1 h-1 bg-blue-300/40 rounded-full animate-pulse delay-700"></div>
+          {/* Shimmer effects */}
+          <div 
+            className="absolute inset-0 opacity-20 pointer-events-none"
+            style={{
+              background: `radial-gradient(circle at ${((cardRotation.y + 10) / 20) * 100}% ${((cardRotation.x + 10) / 20) * 100}%, rgba(16, 185, 129, 0.3) 0%, transparent 50%)`,
+              transition: 'background 0.3s ease-out'
+            }}
+          ></div>
+          
+          {/* Moving sparkle dots */}
+          <div 
+            className="absolute w-1 h-1 bg-emerald-400/60 rounded-full transition-all duration-300"
+            style={{
+              top: `${20 + cardRotation.x * 2}%`,
+              right: `${15 + cardRotation.y * 1.5}%`,
+              opacity: Math.abs(cardRotation.x + cardRotation.y) > 2 ? 1 : 0.3
+            }}
+          ></div>
+          <div 
+            className="absolute w-1.5 h-1.5 bg-emerald-300/50 rounded-full transition-all duration-300"
+            style={{
+              bottom: `${25 - cardRotation.x * 1.5}%`,
+              left: `${20 + cardRotation.y * 2}%`,
+              opacity: Math.abs(cardRotation.x + cardRotation.y) > 3 ? 1 : 0.2
+            }}
+          ></div>
+          <div 
+            className="absolute w-0.5 h-0.5 bg-emerald-500/70 rounded-full transition-all duration-300"
+            style={{
+              top: `${40 + cardRotation.y * 3}%`,
+              left: `${10 + cardRotation.x * 2}%`,
+              opacity: Math.abs(cardRotation.x + cardRotation.y) > 1 ? 1 : 0.4
+            }}
+          ></div>
         </div>
       </div>
     </div>
