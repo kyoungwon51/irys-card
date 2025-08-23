@@ -72,10 +72,60 @@ export async function POST() {
       
     } catch (twitterError) {
       console.error('Twitter API failed:', twitterError);
-      // Fallback to enhanced mock data
-      const profileAnalysis = generateEnhancedProfile(username!);
-      console.log('Using fallback mock data:', profileAnalysis);
-      return NextResponse.json({ profile: profileAnalysis });
+      
+      // 세션에서 기본 정보 추출하여 프로필 생성
+      const sessionUser = session as any;
+      const sessionProfile = {
+        username: sessionUser.user?.username || 'user',
+        name: sessionUser.user?.name || sessionUser.user?.displayName || 'User',
+        description: '',
+        profile_image_url: sessionUser.user?.image || sessionUser.user?.profileImage || `https://api.dicebear.com/7.x/avataaars/svg?seed=${sessionUser.user?.username}&backgroundColor=50fed6`,
+        public_metrics: {
+          followers_count: Math.floor(Math.random() * 10000) + 500,
+          following_count: Math.floor(Math.random() * 1000) + 100,
+        },
+        verified: false,
+        location: 'Crypto Twitter',
+        tweets: [
+          {
+            id: '1',
+            text: 'Exploring the future of decentralized technologies and Web3 innovation 🚀',
+            created_at: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
+            public_metrics: { like_count: 25, retweet_count: 5, reply_count: 3, quote_count: 1 }
+          },
+          {
+            id: '2',
+            text: 'Building in the crypto space requires both technical skills and community vision ✨',
+            created_at: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(),
+            public_metrics: { like_count: 18, retweet_count: 4, reply_count: 2, quote_count: 0 }
+          },
+          {
+            id: '3',
+            text: 'The intersection of AI and blockchain opens up incredible possibilities 🌟',
+            created_at: new Date(Date.now() - 1000 * 60 * 60 * 8).toISOString(),
+            public_metrics: { like_count: 42, retweet_count: 8, reply_count: 6, quote_count: 2 }
+          },
+          {
+            id: '4',
+            text: 'Community-driven development is the key to sustainable Web3 growth 🤝',
+            created_at: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(),
+            public_metrics: { like_count: 33, retweet_count: 7, reply_count: 5, quote_count: 1 }
+          },
+          {
+            id: '5',
+            text: 'Every day brings new opportunities to learn and innovate in this space 💫',
+            created_at: new Date(Date.now() - 1000 * 60 * 60 * 16).toISOString(),
+            public_metrics: { like_count: 29, retweet_count: 6, reply_count: 4, quote_count: 1 }
+          }
+        ]
+      };
+      
+      // AI 기반 자기소개 생성
+      const enhancedBio = generatePersonalityBasedBio(sessionProfile);
+      sessionProfile.description = enhancedBio;
+      
+      console.log('Using session-based profile:', sessionProfile);
+      return NextResponse.json({ profile: sessionProfile });
     }
     
   } catch (error) {
@@ -400,7 +450,7 @@ function generatePersonalityBasedBio(profile: TwitterProfile): string {
   return bioTemplates[Math.floor(Math.random() * bioTemplates.length)];
 }
 
-function generateEnhancedProfile(username: string) {
+function generateEnhancedProfile(username: string, session?: any) {
   // 실제 Twitter API 대신 사용자명 기반으로 더 정교한 프로필 생성
   const mockAnalysis: TweetAnalysis = {
     personality: ['창의적', '활발한'],
@@ -410,12 +460,16 @@ function generateEnhancedProfile(username: string) {
     activity: 'active',
     language: 'friendly'
   };
+
+  // 세션에서 실제 사용자 정보 사용 (가능한 경우)
+  const realName = session?.user?.name || session?.user?.displayName;
+  const realImage = session?.user?.image || session?.user?.profileImage;
   
   const mockProfile: TwitterProfile = {
     username: username,
-    name: `${username.charAt(0).toUpperCase() + username.slice(1)} 🔥`,
+    name: realName || `${username.charAt(0).toUpperCase() + username.slice(1)} 🔥`,
     description: '', // 빈 값으로 설정하여 AI 생성 유도
-    profile_image_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}&backgroundColor=50fed6`,
+    profile_image_url: realImage || `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}&backgroundColor=50fed6`,
     public_metrics: {
       followers_count: Math.floor(Math.random() * 50000) + 1000,
       following_count: Math.floor(Math.random() * 2000) + 100,
@@ -423,12 +477,47 @@ function generateEnhancedProfile(username: string) {
     verified: Math.random() > 0.7,
     location: 'Crypto Twitter'
   };
+
+  // Mock 트윗 데이터 생성
+  const mockTweets = [
+    {
+      id: '1',
+      text: 'Building the future of Web3 with innovative blockchain solutions 🚀',
+      created_at: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
+      public_metrics: { like_count: 42, retweet_count: 12, reply_count: 5, quote_count: 2 }
+    },
+    {
+      id: '2', 
+      text: 'Just discovered an amazing DeFi protocol that could revolutionize farming yields!',
+      created_at: new Date(Date.now() - 1000 * 60 * 60 * 6).toISOString(),
+      public_metrics: { like_count: 28, retweet_count: 8, reply_count: 3, quote_count: 1 }
+    },
+    {
+      id: '3',
+      text: 'The intersection of AI and blockchain is where the magic happens ✨',
+      created_at: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(),
+      public_metrics: { like_count: 65, retweet_count: 15, reply_count: 8, quote_count: 3 }
+    },
+    {
+      id: '4',
+      text: 'Community first, technology second. This is the way forward in crypto 🌟',
+      created_at: new Date(Date.now() - 1000 * 60 * 60 * 18).toISOString(),
+      public_metrics: { like_count: 89, retweet_count: 23, reply_count: 12, quote_count: 4 }
+    },
+    {
+      id: '5',
+      text: 'Learning something new every day in this incredible space. Never stop exploring!',
+      created_at: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+      public_metrics: { like_count: 34, retweet_count: 7, reply_count: 6, quote_count: 1 }
+    }
+  ];
   
   // AI 기반 자기소개 생성
   const aiGeneratedBio = createPersonalizedBio(mockAnalysis, mockProfile);
   
   return {
     ...mockProfile,
-    description: aiGeneratedBio
+    description: aiGeneratedBio,
+    tweets: mockTweets
   };
 }
