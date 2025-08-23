@@ -53,11 +53,15 @@ export async function POST(_request: Request) {
     // 실제 Twitter API 호출 시도
     try {
       console.log('Attempting to fetch Twitter profile...');
+      console.log('Twitter ID:', twitterId);
+      console.log('Access Token (first 10 chars):', session.accessToken?.substring(0, 10) + '...');
+      
       const profileData = await fetchTwitterUserProfile(twitterId!, session.accessToken);
-      console.log('Profile data received:', profileData);
+      console.log('Profile data received:', JSON.stringify(profileData, null, 2));
       
       const tweetsData = await fetchUserTweets(twitterId!, session.accessToken);
       console.log('Tweets data received:', tweetsData?.length, 'tweets');
+      console.log('First tweet:', tweetsData?.[0]);
       
       // AI 기반 자기소개 생성
       const enhancedBio = generateAIBio(profileData, tweetsData);
@@ -164,7 +168,9 @@ async function fetchTwitterUserProfile(userId: string, accessToken: string | und
   );
   
   if (!response.ok) {
-    throw new Error(`Twitter API error: ${response.status}`);
+    const errorText = await response.text();
+    console.error(`Twitter API profile error: ${response.status} - ${errorText}`);
+    throw new Error(`Twitter API error: ${response.status} - ${errorText}`);
   }
   
   const data = await response.json();
@@ -186,7 +192,9 @@ async function fetchUserTweets(userId: string, accessToken: string | undefined):
   );
   
   if (!response.ok) {
-    throw new Error(`Twitter API error: ${response.status}`);
+    const errorText = await response.text();
+    console.error(`Twitter API tweets error: ${response.status} - ${errorText}`);
+    throw new Error(`Twitter API tweets error: ${response.status} - ${errorText}`);
   }
   
   const data = await response.json();
