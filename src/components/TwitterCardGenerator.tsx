@@ -415,7 +415,7 @@ export default function TwitterCardGenerator() {
                   Recent Tweets
                 </h4>
                 <div className="space-y-2 max-h-32 overflow-y-auto">
-                  {profile.tweets.slice(0, 5).map((tweet, index) => (
+                  {profile.tweets.slice(0, 5).map((tweet) => (
                     <div key={tweet.id} className="bg-white/5 rounded-lg p-2 border border-white/10">
                       <p className="text-black/70 text-xs leading-tight">
                         {tweet.text.length > 80 ? `${tweet.text.slice(0, 80)}...` : tweet.text}

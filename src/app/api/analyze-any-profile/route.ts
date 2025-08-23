@@ -215,7 +215,7 @@ function performDeepTweetAnalysis(tweets: TwitterTweet[]): TweetAnalysis {
   };
 }
 
-function createPersonalizedBio(analysis: TweetAnalysis, profile: TwitterProfile): string {
+function createPersonalizedBio(analysis: TweetAnalysis, _profile: TwitterProfile): string {
   const { personality, interests, expertise, tone, activity } = analysis;
   
   // Personality-based prefix
@@ -269,7 +269,7 @@ function createPersonalizedBio(analysis: TweetAnalysis, profile: TwitterProfile)
   return `${prefix} ${mainFocus} | ${secondary} ${ending}`;
 }
 
-function generatePersonalityBasedBio(profile: TwitterProfile): string {
+function generatePersonalityBasedBio(_profile: TwitterProfile): string {
   // Generate bio using profile info only when no tweets available
   const bioTemplates = [
     'Creator pursuing new technology and innovation 🚀',
