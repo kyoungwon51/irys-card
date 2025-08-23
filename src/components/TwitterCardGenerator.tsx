@@ -77,12 +77,16 @@ export default function TwitterCardGenerator() {
   
   const cardRef = useRef<HTMLDivElement>(null);
   const animationFrameRef = useRef<number | null>(null);
+  const lastMoveTime = useRef<number>(0);
 
-  // 마우스 움직임에 따른 카드 틸트 효과 (개선된 버전)
+  // 최적화된 마우스 움직임 핸들러 (throttled)
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const now = Date.now();
+    if (now - lastMoveTime.current < 16) return; // 60fps로 제한
+    lastMoveTime.current = now;
+
     if (!cardRef.current) return;
     
-    // 이전 애니메이션 프레임 취소
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
     }
@@ -97,9 +101,9 @@ export default function TwitterCardGenerator() {
       const mouseX = e.clientX - centerX;
       const mouseY = e.clientY - centerY;
       
-      // 회전 강도 조절 (더 부드럽게)
-      const rotateX = Math.max(-15, Math.min(15, (mouseY / (rect.height / 2)) * -8));
-      const rotateY = Math.max(-15, Math.min(15, (mouseX / (rect.width / 2)) * 8));
+      // 최적화된 회전 계산
+      const rotateX = Math.max(-12, Math.min(12, (mouseY * -6) / (rect.height / 2)));
+      const rotateY = Math.max(-12, Math.min(12, (mouseX * 6) / (rect.width / 2)));
       
       setCardRotation({ x: rotateX, y: rotateY });
     });
@@ -292,7 +296,7 @@ export default function TwitterCardGenerator() {
             src="/iryslogo.png" 
             alt="IRYS" 
             width={300}
-            height={5}
+            height={-15}
             className="w-72 h-auto"
           />
         </div>
@@ -419,7 +423,7 @@ export default function TwitterCardGenerator() {
             src="/iryslogo.png" 
             alt="IRYS" 
             width={300}
-            height={5}
+            height={-15}
             className="w-72 h-auto"
           />
         </div>
@@ -427,127 +431,67 @@ export default function TwitterCardGenerator() {
       
       {/* Card Preview */}
       <div className="flex flex-col items-center">
-        {/* Outer glow container */}
-        <div 
-          className="relative"
-          style={{
-            filter: `
-              drop-shadow(0 0 ${50 + Math.abs(cardRotation.x + cardRotation.y) * 5}px rgba(16, 185, 129, ${0.8 + Math.abs(cardRotation.x + cardRotation.y) * 0.1})) 
-              drop-shadow(0 0 ${80 + Math.abs(cardRotation.x + cardRotation.y) * 8}px rgba(255, 255, 255, ${0.6 + Math.abs(cardRotation.x + cardRotation.y) * 0.05}))
-              drop-shadow(0 0 ${120 + Math.abs(cardRotation.x + cardRotation.y) * 10}px rgba(16, 185, 129, ${0.4 + Math.abs(cardRotation.x + cardRotation.y) * 0.03}))
-              drop-shadow(0 0 ${200 + Math.abs(cardRotation.x + cardRotation.y) * 15}px rgba(255, 255, 255, ${0.3 + Math.abs(cardRotation.x + cardRotation.y) * 0.02}))
-            `,
-            transition: 'filter 0.3s ease-out'
-          }}
-        >
-          {/* Multiple ambient light layers */}
-          <div 
-            className="absolute inset-0 rounded-3xl pointer-events-none"
-            style={{
-              background: `
-                radial-gradient(ellipse at center, 
-                  rgba(16, 185, 129, ${0.4 + Math.abs(cardRotation.x + cardRotation.y) * 0.05}) 0%, 
-                  rgba(255, 255, 255, ${0.25 + Math.abs(cardRotation.x + cardRotation.y) * 0.03}) 20%,
-                  rgba(16, 185, 129, ${0.15 + Math.abs(cardRotation.x + cardRotation.y) * 0.02}) 40%,
-                  rgba(255, 255, 255, ${0.1 + Math.abs(cardRotation.x + cardRotation.y) * 0.015}) 60%, 
-                  transparent 80%
-                )
-              `,
-              transform: 'scale(1.5)',
-              opacity: isHovering ? 1 : 0.8,
-              transition: 'opacity 0.3s ease-out, background 0.2s ease-out'
-            }}
-          ></div>
-          
-          {/* Intense outer glow */}
-          <div 
-            className="absolute inset-0 rounded-3xl pointer-events-none"
-            style={{
-              background: `
-                radial-gradient(ellipse at center, 
-                  transparent 0%, 
-                  rgba(255, 255, 255, ${0.3 + Math.abs(cardRotation.x + cardRotation.y) * 0.02}) 30%,
-                  rgba(16, 185, 129, ${0.2 + Math.abs(cardRotation.x + cardRotation.y) * 0.015}) 50%,
-                  transparent 70%
-                )
-              `,
-              transform: 'scale(2)',
-              opacity: isHovering ? 0.9 : 0.6,
-              transition: 'opacity 0.3s ease-out, background 0.2s ease-out'
-            }}
-          ></div>
-          
+        {/* Shadow container */}
+        <div className="relative">
           <div 
             ref={cardRef}
-            className="w-80 h-[500px] bg-white rounded-3xl p-6 shadow-2xl relative overflow-hidden border-2 border-emerald-300/80 hover:border-emerald-400/90 transition-all duration-300 hover:shadow-emerald-300/80"
+            className="w-80 h-[500px] rounded-3xl p-6 relative overflow-hidden border border-gray-300/30 transition-all duration-200"
             onMouseMove={handleMouseMove}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             style={{
               transform: `perspective(1000px) rotateX(${cardRotation.x}deg) rotateY(${cardRotation.y}deg)`,
               transformStyle: 'preserve-3d',
-              transition: isHovering ? 'transform 0.05s ease-out, border-color 0.3s ease, box-shadow 0.3s ease' : 'transform 0.5s ease-out, border-color 0.3s ease, box-shadow 0.3s ease',
-              background: 'white',
+              transition: isHovering ? 'transform 0.05s ease-out, box-shadow 0.2s ease' : 'transform 0.3s ease-out, box-shadow 0.2s ease',
+              background: `
+                linear-gradient(135deg, 
+                  #f8fafc 0%, 
+                  #e2e8f0 20%, 
+                  #cbd5e1 40%, 
+                  #94a3b8 60%, 
+                  #64748b 80%, 
+                  #475569 100%
+                ),
+                radial-gradient(circle at ${50 + cardRotation.y * 2}% ${50 + cardRotation.x * 2}%, 
+                  rgba(255, 255, 255, 0.8) 0%, 
+                  rgba(192, 192, 192, 0.4) 50%, 
+                  transparent 70%
+                )
+              `,
               boxShadow: `
-                0 ${25 + Math.abs(cardRotation.x) * 2}px ${50 + Math.abs(cardRotation.y) * 2}px -12px rgba(0, 0, 0, ${0.25 + Math.abs(cardRotation.x + cardRotation.y) * 0.01}), 
-                0 0 0 1px rgba(255, 255, 255, 0.3), 
-                inset 0 0 ${30 + Math.abs(cardRotation.x + cardRotation.y) * 5}px rgba(16, 185, 129, ${Math.abs(cardRotation.x + cardRotation.y) * 0.08 + 0.05}),
-                0 0 ${60 + Math.abs(cardRotation.x + cardRotation.y) * 8}px rgba(16, 185, 129, ${0.4 + Math.abs(cardRotation.x + cardRotation.y) * 0.03}),
-                0 0 ${100 + Math.abs(cardRotation.x + cardRotation.y) * 12}px rgba(255, 255, 255, ${0.3 + Math.abs(cardRotation.x + cardRotation.y) * 0.02})
+                ${cardRotation.y * 2}px ${25 + cardRotation.x * 2}px ${40 + Math.abs(cardRotation.x + cardRotation.y) * 3}px rgba(0, 0, 0, 0.15),
+                ${cardRotation.y * 4}px ${35 + cardRotation.x * 3}px ${60 + Math.abs(cardRotation.x + cardRotation.y) * 4}px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.7),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.1)
               `
             }}
           >
-          {/* Holographic shimmer overlay */}
+          {/* Simplified silver shimmer */}
           <div 
-            className="absolute inset-0 pointer-events-none opacity-40"
+            className="absolute inset-0 pointer-events-none opacity-30"
             style={{
-              background: `
-                radial-gradient(circle at ${((cardRotation.y + 10) / 20) * 100}% ${((cardRotation.x + 10) / 20) * 100}%, 
-                  rgba(255, 255, 255, ${0.3 + Math.abs(cardRotation.x + cardRotation.y) * 0.02}) 0%, 
-                  rgba(192, 192, 192, ${0.2 + Math.abs(cardRotation.x + cardRotation.y) * 0.015}) 20%,
-                  rgba(169, 169, 169, ${0.1 + Math.abs(cardRotation.x + cardRotation.y) * 0.01}) 40%,
-                  transparent 60%
-                ),
-                linear-gradient(${135 + cardRotation.y * 3}deg, 
-                  transparent 0%, 
-                  rgba(255, 255, 255, ${Math.abs(cardRotation.x + cardRotation.y) * 0.04}) 25%, 
-                  rgba(192, 192, 192, ${Math.abs(cardRotation.x + cardRotation.y) * 0.06}) 50%, 
-                  rgba(169, 169, 169, ${Math.abs(cardRotation.x + cardRotation.y) * 0.04}) 75%, 
-                  transparent 100%
-                )
-              `,
-              transition: 'background 0.1s ease-out'
-            }}
-          ></div>
-          
-          {/* Moving rainbow shimmer */}
-          <div 
-            className="absolute inset-0 pointer-events-none opacity-20"
-            style={{
-              background: `conic-gradient(from ${cardRotation.y * 10}deg at ${50 + cardRotation.y * 2}% ${50 + cardRotation.x * 2}%, 
-                transparent 0deg, 
-                rgba(255, 255, 255, 0.8) ${60 + cardRotation.x * 5}deg, 
-                rgba(192, 192, 192, 0.6) ${120 + cardRotation.y * 3}deg,
-                rgba(169, 169, 169, 0.4) ${180 + cardRotation.x * 2}deg,
-                rgba(211, 211, 211, 0.3) ${240 + cardRotation.y * 4}deg,
-                transparent 360deg
+              background: `linear-gradient(${135 + cardRotation.y * 2}deg, 
+                transparent 30%, 
+                rgba(255, 255, 255, 0.6) 50%, 
+                rgba(192, 192, 192, 0.4) 70%, 
+                transparent 90%
               )`,
-              transition: 'background 0.2s ease-out'
+              transition: 'background 0.15s ease-out'
             }}
           ></div>
 
           {/* Background Pattern */}
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute top-10 left-10 w-20 h-20 border border-white/20 rounded-full"></div>
-            <div className="absolute top-20 right-8 w-16 h-16 border border-white/15 rounded-full"></div>
-            <div className="absolute bottom-20 left-6 w-12 h-12 border border-white/10 rounded-full"></div>
-            <div className="absolute bottom-32 right-12 w-8 h-8 border border-white/20 rounded-full"></div>
+          <div className="absolute inset-0 opacity-5">
+            <div className="absolute top-10 left-10 w-20 h-20 border border-gray-300/30 rounded-full"></div>
+            <div className="absolute top-20 right-8 w-16 h-16 border border-gray-400/20 rounded-full"></div>
+            <div className="absolute bottom-20 left-6 w-12 h-12 border border-gray-500/15 rounded-full"></div>
+            <div className="absolute bottom-32 right-12 w-8 h-8 border border-gray-600/25 rounded-full"></div>
           </div>
 
           {/* Card Header */}
           <div className="relative z-10 flex items-center justify-between mb-6">
-            <h3 className="text-xl font-bold text-black">{profile.displayName}</h3>
-            <div className="w-8 h-8 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-lg flex items-center justify-center border border-emerald-200/50">
+            <h3 className="text-xl font-bold text-gray-800">{profile.displayName}</h3>
+            <div className="w-8 h-8 bg-gradient-to-br from-gray-400 to-gray-600 rounded-lg border border-gray-300/50">
             </div>
           </div>
 
@@ -615,60 +559,23 @@ export default function TwitterCardGenerator() {
             </div>
           </div>
 
-          {/* Dynamic sparkle particles */}
+          {/* Simplified sparkle effects */}
           <div 
-            className="absolute w-1 h-1 bg-white/90 rounded-full transition-all duration-200"
+            className="absolute w-1 h-1 bg-white/80 rounded-full transition-all duration-300"
             style={{
-              top: `${15 + cardRotation.x * 2 + Math.sin(Date.now() * 0.001) * 5}%`,
-              right: `${10 + cardRotation.y * 1.5}%`,
-              opacity: Math.abs(cardRotation.x + cardRotation.y) > 1 ? 0.9 : 0.2,
-              boxShadow: '0 0 8px rgba(255, 255, 255, 0.9), 0 0 15px rgba(192, 192, 192, 0.6)',
-              transform: `scale(${1 + Math.abs(cardRotation.x + cardRotation.y) * 0.1})`,
-              animation: 'twinkle 2s ease-in-out infinite alternate'
+              top: `${20 + cardRotation.x}%`,
+              right: `${15 + cardRotation.y}%`,
+              opacity: Math.abs(cardRotation.x + cardRotation.y) > 2 ? 0.8 : 0.2,
+              boxShadow: '0 0 6px rgba(255, 255, 255, 0.6)'
             }}
           ></div>
           <div 
-            className="absolute w-1.5 h-1.5 bg-gray-200/80 rounded-full transition-all duration-300"
+            className="absolute w-1.5 h-1.5 bg-gray-300/60 rounded-full transition-all duration-300"
             style={{
-              bottom: `${20 - cardRotation.x * 1.5}%`,
-              left: `${15 + cardRotation.y * 2}%`,
-              opacity: Math.abs(cardRotation.x + cardRotation.y) > 2 ? 0.8 : 0.1,
-              boxShadow: '0 0 10px rgba(192, 192, 192, 0.8), 0 0 20px rgba(169, 169, 169, 0.4)',
-              transform: `scale(${1 + Math.abs(cardRotation.x + cardRotation.y) * 0.15})`,
-              animation: 'twinkle 1.5s ease-in-out infinite alternate-reverse'
-            }}
-          ></div>
-          <div 
-            className="absolute w-0.5 h-0.5 bg-white/100 rounded-full transition-all duration-150"
-            style={{
-              top: `${35 + cardRotation.y * 3}%`,
-              left: `${5 + cardRotation.x * 2}%`,
-              opacity: Math.abs(cardRotation.x + cardRotation.y) > 0.5 ? 1 : 0.3,
-              boxShadow: '0 0 6px rgba(255, 255, 255, 1), 0 0 12px rgba(192, 192, 192, 0.7)',
-              transform: `scale(${1 + Math.abs(cardRotation.x + cardRotation.y) * 0.2})`,
-              animation: 'twinkle 1s ease-in-out infinite'
-            }}
-          ></div>
-          
-          {/* Floating shimmer streaks */}
-          <div 
-            className="absolute w-8 h-0.5 bg-gradient-to-r from-transparent via-white/60 to-transparent rounded-full transition-all duration-200"
-            style={{
-              top: `${25 + cardRotation.x * 1.5}%`,
-              right: `${20 + cardRotation.y * 2}%`,
-              opacity: Math.abs(cardRotation.x + cardRotation.y) > 3 ? 0.9 : 0,
-              transform: `rotate(${cardRotation.y * 15}deg) translateX(${cardRotation.x * 2}px)`,
-              boxShadow: '0 0 15px rgba(255, 255, 255, 0.8)'
-            }}
-          ></div>
-          <div 
-            className="absolute w-6 h-0.5 bg-gradient-to-r from-transparent via-gray-300/70 to-transparent rounded-full transition-all duration-250"
-            style={{
-              bottom: `${30 + cardRotation.y * 1.8}%`,
-              right: `${25 + cardRotation.x * 1.2}%`,
-              opacity: Math.abs(cardRotation.x + cardRotation.y) > 4 ? 0.8 : 0,
-              transform: `rotate(${-cardRotation.x * 12}deg) translateY(${cardRotation.y * 3}px)`,
-              boxShadow: '0 0 12px rgba(192, 192, 192, 0.6)'
+              bottom: `${25 + cardRotation.x}%`,
+              left: `${20 + cardRotation.y}%`,
+              opacity: Math.abs(cardRotation.x + cardRotation.y) > 3 ? 0.7 : 0.1,
+              boxShadow: '0 0 8px rgba(192, 192, 192, 0.5)'
             }}
           ></div>
           </div>
