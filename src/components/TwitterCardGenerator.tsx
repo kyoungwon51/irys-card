@@ -124,26 +124,66 @@ export default function TwitterCardGenerator() {
 
   // 사용자 번호 관리 함수들
   const getUserNumber = (username: string): number => {
-    const savedUsers = JSON.parse(localStorage.getItem('irys-connected-users') || '{}');
-    console.log('Current saved users:', savedUsers);
-    console.log('Looking for username:', username);
-    
-    if (savedUsers[username]) {
-      console.log('Found existing user with number:', savedUsers[username]);
-      return savedUsers[username];
+    try {
+      // localStorage 접근 가능 여부 확인
+      if (typeof window === 'undefined' || !window.localStorage) {
+        console.warn('localStorage not available');
+        return 1;
+      }
+
+      const savedUsers = JSON.parse(localStorage.getItem('irys-connected-users') || '{}');
+      console.log('Current saved users:', savedUsers);
+      console.log('Looking for username:', username);
+      
+      if (savedUsers[username]) {
+        console.log('Found existing user with number:', savedUsers[username]);
+        return savedUsers[username];
+      }
+      
+      // 새로운 사용자라면 다음 번호 할당
+      const existingNumbers = Object.values(savedUsers) as number[];
+      const nextNumber = existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 1;
+      
+      console.log('Existing numbers:', existingNumbers);
+      console.log('Assigning new number:', nextNumber, 'to user:', username);
+      savedUsers[username] = nextNumber;
+      localStorage.setItem('irys-connected-users', JSON.stringify(savedUsers));
+      console.log('Updated saved users:', savedUsers);
+      
+      return nextNumber;
+    } catch (error) {
+      console.error('Error in getUserNumber:', error);
+      // 에러 발생 시 localStorage 초기화
+      try {
+        localStorage.removeItem('irys-connected-users');
+        const newUsers = { [username]: 1 };
+        localStorage.setItem('irys-connected-users', JSON.stringify(newUsers));
+        return 1;
+      } catch (e) {
+        console.error('Failed to access localStorage:', e);
+        return 1;
+      }
     }
-    
-    // 새로운 사용자라면 다음 번호 할당
-    const existingNumbers = Object.values(savedUsers) as number[];
-    const nextNumber = existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 1;
-    
-    console.log('Assigning new number:', nextNumber, 'to user:', username);
-    savedUsers[username] = nextNumber;
-    localStorage.setItem('irys-connected-users', JSON.stringify(savedUsers));
-    console.log('Updated saved users:', savedUsers);
-    
-    return nextNumber;
   };
+
+  // 디버깅을 위한 localStorage 확인 함수
+  const checkLocalStorage = () => {
+    const saved = localStorage.getItem('irys-connected-users');
+    console.log('Raw localStorage data:', saved);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        console.log('Parsed localStorage data:', parsed);
+      } catch (e) {
+        console.error('Failed to parse localStorage:', e);
+      }
+    }
+  };
+
+  // 컴포넌트 마운트 시 localStorage 확인
+  useEffect(() => {
+    checkLocalStorage();
+  }, []);
 
   // cleanup 함수
   useEffect(() => {
@@ -422,6 +462,26 @@ export default function TwitterCardGenerator() {
             className="w-72 h-auto"
           />
         </div>
+      </div>
+      
+      {/* 임시 디버깅 버튼 */}
+      <div className="text-center mb-4">
+        <button
+          onClick={() => {
+            localStorage.removeItem('irys-connected-users');
+            console.log('localStorage cleared');
+            checkLocalStorage();
+          }}
+          className="px-4 py-2 bg-red-500 text-white rounded text-sm mr-2"
+        >
+          Clear User Numbers
+        </button>
+        <button
+          onClick={checkLocalStorage}
+          className="px-4 py-2 bg-blue-500 text-white rounded text-sm"
+        >
+          Check localStorage
+        </button>
       </div>
       
       {/* Card Preview */}
