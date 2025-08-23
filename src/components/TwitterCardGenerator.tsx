@@ -131,46 +131,43 @@ export default function TwitterCardGenerator() {
         return 1;
       }
 
-      // 사용자별 번호 저장소 확인
-      const savedUsers = JSON.parse(localStorage.getItem('irys-user-numbers') || '{}');
-      console.log('Current saved users:', savedUsers);
-      console.log('Looking for username:', username);
+      console.log('=== getUserNumber called for:', username, '===');
       
-      // 이미 번호가 할당된 사용자라면 기존 번호 반환
+      // 기존 사용자 번호 확인
+      const savedUsersStr = localStorage.getItem('irys-user-numbers');
+      const savedUsers = savedUsersStr ? JSON.parse(savedUsersStr) : {};
+      console.log('Existing saved users:', savedUsers);
+      
+      // 이미 번호가 있는 사용자인지 확인
       if (savedUsers[username]) {
-        console.log('Found existing user with number:', savedUsers[username]);
+        console.log('✅ Found existing number for', username, ':', savedUsers[username]);
         return savedUsers[username];
       }
       
-      // 새로운 사용자라면 카운터 증가 후 번호 할당
-      const currentCounter = parseInt(localStorage.getItem('irys-card-counter') || '0');
-      const nextNumber = currentCounter + 1;
+      // 새 사용자 - 카운터 증가
+      const counterStr = localStorage.getItem('irys-card-counter');
+      const currentCounter = counterStr ? parseInt(counterStr) : 0;
+      const newNumber = currentCounter + 1;
       
-      console.log('Current counter:', currentCounter);
-      console.log('Assigning new card number:', nextNumber, 'to user:', username);
+      console.log('🆕 New user detected!');
+      console.log('Previous counter:', currentCounter);
+      console.log('Assigning number:', newNumber, 'to user:', username);
       
       // 카운터 업데이트
-      localStorage.setItem('irys-card-counter', nextNumber.toString());
+      localStorage.setItem('irys-card-counter', newNumber.toString());
       
-      // 사용자별 번호 저장
-      savedUsers[username] = nextNumber;
+      // 사용자 번호 저장
+      savedUsers[username] = newNumber;
       localStorage.setItem('irys-user-numbers', JSON.stringify(savedUsers));
       
-      console.log('Updated counter to:', nextNumber);
-      console.log('Updated user numbers:', savedUsers);
+      console.log('✅ Updated counter to:', newNumber);
+      console.log('✅ Updated users list:', savedUsers);
       
-      return nextNumber;
+      return newNumber;
+      
     } catch (error) {
-      console.error('Error in getUserNumber:', error);
-      try {
-        localStorage.setItem('irys-card-counter', '1');
-        const newUsers = { [username]: 1 };
-        localStorage.setItem('irys-user-numbers', JSON.stringify(newUsers));
-        return 1;
-      } catch (e) {
-        console.error('Failed to access localStorage:', e);
-        return 1;
-      }
+      console.error('❌ Error in getUserNumber:', error);
+      return 1;
     }
   };
 
@@ -197,7 +194,7 @@ export default function TwitterCardGenerator() {
 
   // userNumber 변경 추적
   useEffect(() => {
-    console.log('*** userNumber state changed to:', userNumber);
+    console.log('🎯 userNumber state updated to:', userNumber);
   }, [userNumber]);
 
   // cleanup 함수
@@ -283,11 +280,12 @@ export default function TwitterCardGenerator() {
       
       setProfile(normalizedProfile);
       setCurrentSprite(getSpriteDescriptionByUsername(normalizedProfile.username)); // 아이디 기반 스프라이트 선택
+      
+      console.log('🔢 About to get user number for:', normalizedProfile.username);
       const userNum = getUserNumber(normalizedProfile.username);
-      console.log('*** fetchTwitterProfile - Setting user number:', userNum, 'for user:', normalizedProfile.username);
-      console.log('*** Current userNumber state before update:', userNumber);
+      console.log('🔢 Got user number:', userNum, 'for user:', normalizedProfile.username);
+      console.log('🔢 Setting userNumber state to:', userNum);
       setUserNumber(userNum); // 사용자 번호 설정
-      console.log('*** setUserNumber called with:', userNum);
       
       if (data.message) {
         console.log(data.message);
@@ -361,11 +359,12 @@ export default function TwitterCardGenerator() {
       console.log('Normalized profile:', normalizedProfile);
       setProfile(normalizedProfile);
       setCurrentSprite(getSpriteDescriptionByUsername(normalizedProfile.username)); // 아이디 기반 스프라이트 선택
+      
+      console.log('🔢 About to get user number for:', normalizedProfile.username);
       const userNum = getUserNumber(normalizedProfile.username);
-      console.log('*** handleConnectedUserProfile - Setting connected user number:', userNum, 'for user:', normalizedProfile.username);
-      console.log('*** Current userNumber state before update:', userNumber);
+      console.log('🔢 Got user number:', userNum, 'for user:', normalizedProfile.username);
+      console.log('🔢 Setting userNumber state to:', userNum);
       setUserNumber(userNum); // 사용자 번호 설정
-      console.log('*** setUserNumber called with:', userNum);
     } catch (error) {
       console.error('Connected profile analysis failed:', error);
       // Fallback to basic profile fetch
