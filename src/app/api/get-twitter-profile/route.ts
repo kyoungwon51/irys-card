@@ -4,8 +4,21 @@ import { authConfig } from '@/lib/auth'
 
 export async function POST(request: NextRequest) {
   try {
-    const { username } = await request.json()
-    console.log('GET TWITTER PROFILE API called with username:', username);
+    console.log('GET TWITTER PROFILE API called');
+    console.log('Request headers:', Object.fromEntries(request.headers.entries()));
+    
+    const body = await request.text();
+    console.log('Raw request body:', body);
+    
+    let username;
+    try {
+      const parsed = JSON.parse(body);
+      username = parsed.username;
+      console.log('Parsed username:', username);
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      return NextResponse.json({ error: 'Invalid JSON in request body' }, { status: 400 });
+    }
 
     if (!username) {
       console.log('No username provided');
