@@ -16,12 +16,42 @@ interface TwitterProfile {
   location?: string;
 }
 
+// 20개의 스프라이트 설명
+const spriteDescriptions = [
+  { name: "Brave Sprite", description: "Fearless spirit, always charging forward" },
+  { name: "Curious Sprite", description: "Explorer of mysteries, seeker of hidden truths" },
+  { name: "Playful Sprite", description: "Brings fun and laughter wherever they go" },
+  { name: "Loyal Sprite", description: "A true companion who never leaves your side" },
+  { name: "Shy Sprite", description: "Quiet presence, gentle soul in the background" },
+  { name: "Energetic Sprite", description: "A spark of endless motion and excitement" },
+  { name: "Gentle Sprite", description: "Soft heart, always careful and kind" },
+  { name: "Clever Sprite", description: "Quick mind, puzzle-solver, sharp thinker" },
+  { name: "Cheerful Sprite", description: "Sunshine in sprite form, always smiling" },
+  { name: "Serious Sprite", description: "Focused, disciplined, and steady-minded" },
+  { name: "Mischievous Sprite", description: "Trickster spirit with a playful grin" },
+  { name: "Caring Sprite", description: "A sprite that heals with kindness" },
+  { name: "Bold Sprite", description: "Dares to leap where others hesitate" },
+  { name: "Patient Sprite", description: "Calm watcher of time, steady as stone" },
+  { name: "Adventurous Sprite", description: "Restless wanderer, always chasing horizons" },
+  { name: "Calm Sprite", description: "Brings peace like still water in chaos" },
+  { name: "Proud Sprite", description: "Holds dignity high, shining with confidence" },
+  { name: "Helpful Sprite", description: "A guiding hand when times get hard" },
+  { name: "Independent Sprite", description: "Walks their own path, strong and free" },
+  { name: "Friendly Sprite", description: "Open arms, warm smile, endless connections" }
+];
+
+// 랜덤 스프라이트 설명 선택 함수
+const getRandomSpriteDescription = () => {
+  return spriteDescriptions[Math.floor(Math.random() * spriteDescriptions.length)];
+};
+
 export default function TwitterCardGenerator() {
   const { data: session } = useSession();
   const [profile, setProfile] = useState<TwitterProfile | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [inputUsername, setInputUsername] = useState('');
   const [hasTwitterCredentials, setHasTwitterCredentials] = useState(false);
+  const [currentSprite, setCurrentSprite] = useState(() => getRandomSpriteDescription());
   const cardRef = useRef<HTMLDivElement>(null);
 
   // OAuth 상태 확인
@@ -90,6 +120,7 @@ export default function TwitterCardGenerator() {
       console.log('Normalized profile:', normalizedProfile);
       
       setProfile(normalizedProfile);
+      setCurrentSprite(getRandomSpriteDescription()); // 새 프로필마다 새로운 스프라이트 선택
       
       if (data.message) {
         console.log(data.message);
@@ -137,12 +168,15 @@ export default function TwitterCardGenerator() {
       
       const data = await response.json();
       console.log('API Response data:', data);
+      console.log('Connected Profile from API:', data.profile);
+      console.log('Connected ProfileImage field:', data.profile?.profileImage);
+      console.log('Connected Profile_image_url field:', data.profile?.profile_image_url);
       
       // 데이터 형식 통일
       const normalizedProfile = {
         username: data.profile.username,
         displayName: data.profile.name || data.profile.displayName,
-        profileImage: data.profile.profile_image_url,
+        profileImage: data.profile.profileImage || data.profile.profile_image_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${data.profile.username}&backgroundColor=50fed6`,
         bio: data.profile.description,
         followers: data.profile.public_metrics?.followers_count || 0,
         following: data.profile.public_metrics?.following_count || 0,
@@ -152,6 +186,7 @@ export default function TwitterCardGenerator() {
       
       console.log('Normalized profile:', normalizedProfile);
       setProfile(normalizedProfile);
+      setCurrentSprite(getRandomSpriteDescription()); // 새 프로필마다 새로운 스프라이트 선택
     } catch (error) {
       console.error('Connected profile analysis failed:', error);
       // Fallback to basic profile fetch
@@ -180,76 +215,98 @@ export default function TwitterCardGenerator() {
 
   if (!profile) return (
     <div className="max-w-4xl mx-auto">
-      {/* Twitter Connection Section */}
-      <div className="mb-8 text-center">
-        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-          <h3 className="text-white text-xl font-semibold mb-4">
-            Connect Twitter Account
-          </h3>
-          <p className="text-white/80 mb-6">
-            Connect your Twitter account to generate cards based on your actual profile and recent posts.
-          </p>
-          {!session ? (
+      {/* Twitter Connection Section - 연결되지 않았을 때만 표시 */}
+      {!session && (
+        <div className="mb-8 text-center">
+          <div className="bg-white/20 backdrop-blur-lg rounded-2xl p-8 border border-emerald-200/30 shadow-2xl">
+            <h3 className="text-black text-2xl font-bold mb-4">
+              Connect X Account
+            </h3>
+            <p className="text-black/80 mb-8 text-lg">
+              Connect your X account to generate your IRYS card
+            </p>
             <div className="space-y-4">
               {hasTwitterCredentials ? (
                 <button
                   onClick={() => signIn('twitter')}
-                  className="px-8 py-3 bg-white text-teal-600 hover:bg-gray-100 rounded-lg font-medium transition-colors flex items-center gap-2 mx-auto"
+                  className="px-10 py-4 bg-black text-white hover:bg-gray-800 rounded-xl font-semibold transition-all transform hover:scale-105 flex items-center gap-3 mx-auto shadow-lg"
                 >
-                  <span>🐦</span>
-                  Login with Twitter
+                  <span>𝕏</span>
+                  Connect X Account
                 </button>
               ) : (
-                <div className="bg-yellow-500/20 border border-yellow-500/40 rounded-lg p-4">
+                <div className="bg-amber-100 border border-amber-200 rounded-xl p-6">
                   <div className="text-center">
-                    <span className="text-yellow-400">⚠️</span>
-                    <p className="text-white mt-2">Twitter OAuth is not configured.</p>
-                    <p className="text-white/80 text-sm mt-1">
+                    <span className="text-amber-600 text-2xl">⚠️</span>
+                    <p className="text-amber-800 mt-2">Twitter OAuth is not configured.</p>
+                    <p className="text-amber-700 text-sm mt-1">
                       You can still create cards by entering a username manually.
                     </p>
                   </div>
                 </div>
               )}
-              <div className="text-white/60 text-sm">or</div>
+              <div className="text-black/60 text-sm">or</div>
+              
+              <form onSubmit={handleManualSearch} className="flex gap-2 max-w-md mx-auto">
+                <input
+                  type="text"
+                  value={inputUsername}
+                  onChange={(e) => setInputUsername(e.target.value)}
+                  placeholder="Enter username directly (e.g., elonmusk)"
+                  className="flex-1 px-4 py-2 bg-white/50 border border-emerald-200 rounded-lg text-black placeholder-black/50 focus:border-emerald-400 focus:outline-none"
+                />
+                <button
+                  type="submit"
+                  disabled={isLoading || !inputUsername.trim()}
+                  className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors"
+                >
+                  {isLoading ? 'Loading...' : 'Generate'}
+                </button>
+              </form>
             </div>
-          ) : (
-            <div className="bg-green-500/20 border border-green-500/40 rounded-lg p-4 mb-4">
+          </div>
+        </div>
+      )}
+      
+      {/* 연결된 사용자의 경우 간단한 입력 폼만 표시 */}
+      {session && (
+        <div className="mb-8 text-center">
+          <div className="bg-white/20 backdrop-blur-lg rounded-2xl p-6 border border-emerald-200/30 shadow-2xl">
+            <div className="bg-emerald-100 border border-emerald-200 rounded-xl p-4 mb-4">
               <div className="flex items-center justify-center gap-3">
-                <span className="text-green-400">✅</span>
-                <span className="text-white">Connected as @{session.user?.username}</span>
+                <span className="text-emerald-600">✅</span>
+                <span className="text-emerald-800">Connected as @{session.user?.username}</span>
                 <button
                   onClick={() => signOut()}
-                  className="text-white/60 hover:text-white text-sm ml-2"
+                  className="text-emerald-600 hover:text-emerald-800 text-sm ml-2"
                 >
                   (Disconnect)
                 </button>
               </div>
             </div>
-          )}
-          
-          <div className="space-y-4">
-            <form onSubmit={handleManualSearch} className="flex gap-2 max-w-md mx-auto">
-              <input
-                type="text"
-                value={inputUsername}
-                onChange={(e) => setInputUsername(e.target.value)}
-                placeholder={session ? "Enter another username" : "Enter username directly (e.g., elonmusk)"}
-                className="flex-1 px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-white/40 focus:outline-none"
-              />
-              <button
-                type="submit"
-                disabled={isLoading || !inputUsername.trim()}
-                className="px-6 py-2 bg-teal-600 hover:bg-teal-700 disabled:bg-gray-600 text-white rounded-lg font-medium transition-colors"
-              >
-                {isLoading ? 'Loading...' : 'Generate'}
-              </button>
-            </form>
             
-            {session && (
+            <div className="space-y-4">
+              <form onSubmit={handleManualSearch} className="flex gap-2 max-w-md mx-auto">
+                <input
+                  type="text"
+                  value={inputUsername}
+                  onChange={(e) => setInputUsername(e.target.value)}
+                  placeholder="Enter another username"
+                  className="flex-1 px-4 py-2 bg-white/50 border border-emerald-200 rounded-lg text-black placeholder-black/50 focus:border-emerald-400 focus:outline-none"
+                />
+                <button
+                  type="submit"
+                  disabled={isLoading || !inputUsername.trim()}
+                  className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors"
+                >
+                  {isLoading ? 'Loading...' : 'Generate'}
+                </button>
+              </form>
+              
               <button
                 onClick={handleConnectedUserProfile}
                 disabled={isLoading}
-                className="px-8 py-3 bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 disabled:bg-gray-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2 mx-auto"
+                className="px-8 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors flex items-center gap-2 mx-auto"
               >
                 {isLoading ? (
                   <>
@@ -263,15 +320,15 @@ export default function TwitterCardGenerator() {
                   </>
                 )}
               </button>
-            )}
+            </div>
           </div>
         </div>
-      </div>
+      )}
       
       {/* 빈 카드 영역 */}
       <div className="flex flex-col items-center">
-        <div className="w-80 h-[500px] bg-white/5 backdrop-blur-sm border-2 border-dashed border-white/20 rounded-3xl flex items-center justify-center">
-          <div className="text-center text-white/50">
+        <div className="w-80 h-[500px] bg-white backdrop-blur-lg border-2 border-emerald-200/50 rounded-3xl flex items-center justify-center shadow-2xl hover:shadow-emerald-200/50 transition-all duration-300 hover:scale-105">
+          <div className="text-center text-emerald-800/60">
             <div className="text-6xl mb-4">📱</div>
             <p className="text-lg font-medium">카드가 여기에 표시됩니다</p>
             <p className="text-sm mt-2">사용자명을 입력하고 생성 버튼을 눌러주세요</p>
@@ -283,40 +340,11 @@ export default function TwitterCardGenerator() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      {/* Twitter Connection Section */}
-      {/* Twitter Username Input Section */}
-      <div className="mb-8 text-center">
-        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-          <h3 className="text-white text-xl font-semibold mb-4">
-            Twitter 카드 생성기
-          </h3>
-          <p className="text-white/80 mb-6">
-            Twitter 사용자명을 입력하여 Irys Cards 스타일의 카드를 생성하세요.
-          </p>
-          <form onSubmit={handleManualSearch} className="flex gap-2 max-w-md mx-auto">
-            <input
-              type="text"
-              value={inputUsername}
-              onChange={(e) => setInputUsername(e.target.value)}
-              placeholder="Twitter 사용자명 입력 (예: elonmusk)"
-              className="flex-1 px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-white/40 focus:outline-none"
-            />
-            <button
-              type="submit"
-              disabled={isLoading || !inputUsername.trim()}
-              className="px-6 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 text-white rounded-lg font-medium transition-colors"
-            >
-              {isLoading ? '로딩...' : '생성'}
-            </button>
-          </form>
-        </div>
-      </div>
-
       {/* Card Preview */}
       <div className="flex flex-col items-center">
         <div 
           ref={cardRef}
-          className="w-80 h-[500px] bg-gradient-to-br from-blue-100 to-purple-100 rounded-3xl p-6 shadow-2xl relative overflow-hidden"
+          className="w-80 h-[500px] bg-white rounded-3xl p-6 shadow-2xl relative overflow-hidden border-2 border-emerald-200/50 hover:border-emerald-300/70 transition-all duration-300 hover:scale-105 hover:shadow-emerald-200/50"
           style={{
             background: 'linear-gradient(135deg, #50fed6 0%, #3dd5c0 25%, #2bbfaa 50%, #1aa994 75%, #0d9488 100%)',
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1)'
@@ -333,7 +361,7 @@ export default function TwitterCardGenerator() {
           {/* Card Header */}
           <div className="relative z-10 flex items-center justify-between mb-6">
             <h3 className="text-xl font-bold text-black">{profile.displayName}</h3>
-            <div className="w-8 h-8 bg-gradient-to-br from-purple-400 to-blue-500 rounded-lg flex items-center justify-center border border-white/20">
+            <div className="w-8 h-8 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-lg flex items-center justify-center border border-emerald-200/50">
               <span className="text-white text-lg">✨</span>
             </div>
           </div>
@@ -341,7 +369,7 @@ export default function TwitterCardGenerator() {
           {/* Profile Image */}
           <div className="relative z-10 flex justify-center mb-6">
             <div className="relative">
-              <div className="w-32 h-32 rounded-2xl overflow-hidden border-4 border-white/20 bg-gradient-to-br from-purple-400 to-blue-600 p-1">
+              <div className="w-32 h-32 rounded-2xl overflow-hidden border-4 border-emerald-200/50 bg-gradient-to-br from-emerald-400 to-emerald-600 p-1">
                 <div className="w-full h-full rounded-xl overflow-hidden bg-white">
                   <Image
                     src={profile.profileImage}
@@ -369,18 +397,26 @@ export default function TwitterCardGenerator() {
 
           {/* Bio Section */}
           <div className="relative z-10 mb-6">
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-              <div className="flex items-center mb-2">
-                <div className="w-6 h-6 bg-white/20 rounded-lg flex items-center justify-center mr-3">
+            <div className="bg-emerald-50/80 backdrop-blur-sm rounded-xl p-4 border border-emerald-200/50">
+              <div className="flex items-center justify-center">
+                <div className="w-6 h-6 bg-emerald-100 rounded-lg flex items-center justify-center mr-3">
                   <span className="text-white text-sm">🔥</span>
                 </div>
-                <span className="text-black font-medium">
-                  {profile.verified ? "Verified User" : "Big Poster"}
-                </span>
+                <div className="text-center">
+                  {profile.verified ? (
+                    <span className="text-black font-medium">Verified User</span>
+                  ) : (
+                    <div>
+                      <div className="text-black font-bold text-lg mb-1">
+                        {currentSprite.name}
+                      </div>
+                      <div className="text-black/70 text-sm">
+                        {currentSprite.description}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
-              <p className="text-black/80 text-sm leading-relaxed">
-                {profile.bio}
-              </p>
             </div>
           </div>
 
@@ -405,9 +441,9 @@ export default function TwitterCardGenerator() {
           </div>
 
           {/* Decorative sparkles */}
-          <div className="absolute top-4 right-4 w-2 h-2 bg-white/30 rounded-full animate-pulse"></div>
-          <div className="absolute top-8 right-8 w-1 h-1 bg-white/20 rounded-full animate-pulse delay-300"></div>
-          <div className="absolute bottom-20 left-8 w-1.5 h-1.5 bg-white/25 rounded-full animate-pulse delay-150"></div>
+          <div className="absolute top-4 right-4 w-2 h-2 bg-emerald-300/40 rounded-full animate-pulse"></div>
+          <div className="absolute top-8 right-8 w-1 h-1 bg-emerald-200/30 rounded-full animate-pulse delay-300"></div>
+          <div className="absolute bottom-20 left-8 w-1.5 h-1.5 bg-emerald-300/35 rounded-full animate-pulse delay-150"></div>
           <div className="absolute top-1/3 left-4 w-1 h-1 bg-purple-300/40 rounded-full animate-pulse delay-500"></div>
           <div className="absolute top-2/3 right-6 w-1 h-1 bg-blue-300/40 rounded-full animate-pulse delay-700"></div>
         </div>
@@ -415,7 +451,7 @@ export default function TwitterCardGenerator() {
         {/* Download Button */}
         <button
           onClick={downloadCard}
-          className="mt-6 px-8 py-3 bg-white text-purple-600 rounded-lg font-medium hover:bg-gray-100 transition-colors flex items-center gap-2"
+          className="mt-6 px-8 py-3 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition-colors flex items-center gap-2 shadow-lg hover:shadow-emerald-200/50"
         >
           <span>⬇️</span>
           Download Card

@@ -85,9 +85,14 @@ export async function POST(_request: Request) {
       console.log('Enhanced bio generated:', enhancedBio);
       
       const enhancedProfile = {
-        ...profileData,
-        profileImage: profileData.profile_image_url, // Twitter API 필드를 frontend 형식으로 매핑
+        username: profileData.username,
+        name: profileData.name,
         description: enhancedBio || profileData.description,
+        profileImage: profileData.profile_image_url, // Twitter API 필드를 frontend 형식으로 매핑
+        profile_image_url: profileData.profile_image_url, // 백워드 호환성을 위해 둘 다 제공
+        public_metrics: profileData.public_metrics,
+        verified: profileData.verified,
+        location: profileData.location,
         tweets: tweetsData?.slice(0, 5) || [], // 최근 5개 트윗만 포함
       };
       
@@ -113,6 +118,7 @@ export async function POST(_request: Request) {
         displayName: sessionUser.user?.name || sessionUser.user?.displayName || 'User',
         description: '',
         profileImage: sessionUser.user?.image || sessionUser.user?.profileImage || `https://api.dicebear.com/7.x/avataaars/svg?seed=${sessionUser.user?.username}&backgroundColor=50fed6`,
+        profile_image_url: sessionUser.user?.image || sessionUser.user?.profileImage || `https://api.dicebear.com/7.x/avataaars/svg?seed=${sessionUser.user?.username}&backgroundColor=50fed6`,
         public_metrics: {
           followers_count: Math.floor(Math.random() * 10000) + 500,
           following_count: Math.floor(Math.random() * 1000) + 100,

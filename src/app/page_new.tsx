@@ -1,21 +1,21 @@
 'use client';
 
 import TwitterCardGenerator from '@/components/TwitterCardGenerator';
+import Image from 'next/image';
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-400 via-teal-400 to-cyan-400">
       <div className="container mx-auto px-4 py-8">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">
-            MONAD CARDS
-          </h1>
-          <p className="text-lg text-gray-300 mb-2">
-            &quot;A token of appreciation for Crypto Twitter&quot;
-          </p>
-          <p className="text-sm text-gray-400">
-            트위터 프로필을 연결하여 나만의 카드를 생성하세요
-          </p>
+        {/* IRYS Logo */}
+        <div className="text-center mb-12">
+          <div className="flex justify-center mb-6">
+            <div className="w-48 h-48 bg-gradient-to-br from-emerald-300 to-teal-500 rounded-3xl shadow-2xl flex items-center justify-center">
+              <span className="text-6xl font-bold text-black tracking-wider transform -skew-x-12">
+                IRYS
+              </span>
+            </div>
+          </div>
         </div>
         
         <TwitterCardGenerator />
