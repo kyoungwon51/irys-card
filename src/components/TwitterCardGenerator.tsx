@@ -82,6 +82,9 @@ export default function TwitterCardGenerator() {
         location: data.profile.location || "Crypto Twitter"
       };
       
+      console.log('Profile data received:', data.profile);
+      console.log('Normalized profile:', normalizedProfile);
+      
       setProfile(normalizedProfile);
       
       if (data.message) {
