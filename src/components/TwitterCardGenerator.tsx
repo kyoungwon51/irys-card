@@ -292,7 +292,7 @@ export default function TwitterCardGenerator() {
             src="/iryslogo.png" 
             alt="IRYS" 
             width={300}
-            height={30}
+            height={5}
             className="w-72 h-auto"
           />
         </div>
@@ -419,7 +419,7 @@ export default function TwitterCardGenerator() {
             src="/iryslogo.png" 
             alt="IRYS" 
             width={300}
-            height={30}
+            height={5}
             className="w-72 h-auto"
           />
         </div>
@@ -431,24 +431,55 @@ export default function TwitterCardGenerator() {
         <div 
           className="relative"
           style={{
-            filter: `drop-shadow(0 0 ${30 + Math.abs(cardRotation.x + cardRotation.y) * 2}px rgba(16, 185, 129, ${0.3 + Math.abs(cardRotation.x + cardRotation.y) * 0.02})) drop-shadow(0 0 ${50 + Math.abs(cardRotation.x + cardRotation.y) * 3}px rgba(255, 255, 255, ${0.1 + Math.abs(cardRotation.x + cardRotation.y) * 0.01}))`,
+            filter: `
+              drop-shadow(0 0 ${50 + Math.abs(cardRotation.x + cardRotation.y) * 5}px rgba(16, 185, 129, ${0.8 + Math.abs(cardRotation.x + cardRotation.y) * 0.1})) 
+              drop-shadow(0 0 ${80 + Math.abs(cardRotation.x + cardRotation.y) * 8}px rgba(255, 255, 255, ${0.6 + Math.abs(cardRotation.x + cardRotation.y) * 0.05}))
+              drop-shadow(0 0 ${120 + Math.abs(cardRotation.x + cardRotation.y) * 10}px rgba(16, 185, 129, ${0.4 + Math.abs(cardRotation.x + cardRotation.y) * 0.03}))
+              drop-shadow(0 0 ${200 + Math.abs(cardRotation.x + cardRotation.y) * 15}px rgba(255, 255, 255, ${0.3 + Math.abs(cardRotation.x + cardRotation.y) * 0.02}))
+            `,
             transition: 'filter 0.3s ease-out'
           }}
         >
-          {/* Ambient light effect */}
+          {/* Multiple ambient light layers */}
           <div 
             className="absolute inset-0 rounded-3xl pointer-events-none"
             style={{
-              background: `radial-gradient(ellipse at center, rgba(16, 185, 129, ${0.15 + Math.abs(cardRotation.x + cardRotation.y) * 0.01}) 0%, rgba(255, 255, 255, ${0.05 + Math.abs(cardRotation.x + cardRotation.y) * 0.005}) 30%, transparent 70%)`,
-              transform: 'scale(1.2)',
-              opacity: isHovering ? 1 : 0.7,
+              background: `
+                radial-gradient(ellipse at center, 
+                  rgba(16, 185, 129, ${0.4 + Math.abs(cardRotation.x + cardRotation.y) * 0.05}) 0%, 
+                  rgba(255, 255, 255, ${0.25 + Math.abs(cardRotation.x + cardRotation.y) * 0.03}) 20%,
+                  rgba(16, 185, 129, ${0.15 + Math.abs(cardRotation.x + cardRotation.y) * 0.02}) 40%,
+                  rgba(255, 255, 255, ${0.1 + Math.abs(cardRotation.x + cardRotation.y) * 0.015}) 60%, 
+                  transparent 80%
+                )
+              `,
+              transform: 'scale(1.5)',
+              opacity: isHovering ? 1 : 0.8,
+              transition: 'opacity 0.3s ease-out, background 0.2s ease-out'
+            }}
+          ></div>
+          
+          {/* Intense outer glow */}
+          <div 
+            className="absolute inset-0 rounded-3xl pointer-events-none"
+            style={{
+              background: `
+                radial-gradient(ellipse at center, 
+                  transparent 0%, 
+                  rgba(255, 255, 255, ${0.3 + Math.abs(cardRotation.x + cardRotation.y) * 0.02}) 30%,
+                  rgba(16, 185, 129, ${0.2 + Math.abs(cardRotation.x + cardRotation.y) * 0.015}) 50%,
+                  transparent 70%
+                )
+              `,
+              transform: 'scale(2)',
+              opacity: isHovering ? 0.9 : 0.6,
               transition: 'opacity 0.3s ease-out, background 0.2s ease-out'
             }}
           ></div>
           
           <div 
             ref={cardRef}
-            className="w-80 h-[500px] bg-white rounded-3xl p-6 shadow-2xl relative overflow-hidden border-2 border-emerald-200/50 hover:border-emerald-300/70 transition-all duration-300 hover:shadow-emerald-200/50"
+            className="w-80 h-[500px] bg-white rounded-3xl p-6 shadow-2xl relative overflow-hidden border-2 border-emerald-300/80 hover:border-emerald-400/90 transition-all duration-300 hover:shadow-emerald-300/80"
             onMouseMove={handleMouseMove}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
@@ -457,7 +488,13 @@ export default function TwitterCardGenerator() {
               transformStyle: 'preserve-3d',
               transition: isHovering ? 'transform 0.05s ease-out, border-color 0.3s ease, box-shadow 0.3s ease' : 'transform 0.5s ease-out, border-color 0.3s ease, box-shadow 0.3s ease',
               background: 'white',
-              boxShadow: `0 ${25 + Math.abs(cardRotation.x) * 2}px ${50 + Math.abs(cardRotation.y) * 2}px -12px rgba(0, 0, 0, ${0.25 + Math.abs(cardRotation.x + cardRotation.y) * 0.01}), 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 0 ${20 + Math.abs(cardRotation.x + cardRotation.y) * 3}px rgba(192, 192, 192, ${Math.abs(cardRotation.x + cardRotation.y) * 0.03})`
+              boxShadow: `
+                0 ${25 + Math.abs(cardRotation.x) * 2}px ${50 + Math.abs(cardRotation.y) * 2}px -12px rgba(0, 0, 0, ${0.25 + Math.abs(cardRotation.x + cardRotation.y) * 0.01}), 
+                0 0 0 1px rgba(255, 255, 255, 0.3), 
+                inset 0 0 ${30 + Math.abs(cardRotation.x + cardRotation.y) * 5}px rgba(16, 185, 129, ${Math.abs(cardRotation.x + cardRotation.y) * 0.08 + 0.05}),
+                0 0 ${60 + Math.abs(cardRotation.x + cardRotation.y) * 8}px rgba(16, 185, 129, ${0.4 + Math.abs(cardRotation.x + cardRotation.y) * 0.03}),
+                0 0 ${100 + Math.abs(cardRotation.x + cardRotation.y) * 12}px rgba(255, 255, 255, ${0.3 + Math.abs(cardRotation.x + cardRotation.y) * 0.02})
+              `
             }}
           >
           {/* Holographic shimmer overlay */}
