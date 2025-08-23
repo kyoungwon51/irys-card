@@ -487,20 +487,45 @@ export default function TwitterCardGenerator() {
       <div className="text-center mb-4">
         <button
           onClick={() => {
+            // 모든 관련 localStorage 항목 제거
             localStorage.removeItem('irys-card-counter');
             localStorage.removeItem('irys-user-numbers');
-            console.log('Card counter and user numbers cleared');
+            localStorage.removeItem('irys-connected-users'); // 이전 키도 제거
+            console.log('=== ALL DATA CLEARED ===');
+            console.log('Card counter cleared');
+            console.log('User numbers cleared');
+            console.log('Connected users cleared');
             checkLocalStorage();
+            // 현재 사용자 번호도 초기화
+            setUserNumber(1);
           }}
           className="px-4 py-2 bg-red-500 text-white rounded text-sm mr-2"
         >
-          Clear All Data
+          🗑️ RESET ALL
         </button>
         <button
           onClick={checkLocalStorage}
           className="px-4 py-2 bg-blue-500 text-white rounded text-sm"
         >
-          Check Data
+          📊 Check Data
+        </button>
+        <button
+          onClick={() => {
+            if (profile?.username) {
+              // 현재 사용자를 강제로 새 번호로 재할당
+              const savedUsers = JSON.parse(localStorage.getItem('irys-user-numbers') || '{}');
+              delete savedUsers[profile.username]; // 기존 번호 제거
+              localStorage.setItem('irys-user-numbers', JSON.stringify(savedUsers));
+              
+              const newNumber = getUserNumber(profile.username);
+              setUserNumber(newNumber);
+              console.log('=== FORCE NEW NUMBER ===');
+              console.log('Assigned new number:', newNumber, 'to current user:', profile.username);
+            }
+          }}
+          className="px-4 py-2 bg-green-500 text-white rounded text-sm ml-2"
+        >
+          🔄 Force New #
         </button>
       </div>
       
