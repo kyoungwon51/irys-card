@@ -49,8 +49,13 @@ export async function POST(_request: Request) {
     }
 
     // 세션에서 트위터 ID와 토큰 추출
-    const twitterId = (session as any).user?.twitterId || (session as any).twitterId;
-    const accessToken = (session as any).accessToken;
+    const extendedSession = session as TwitterSession & { 
+      accessToken?: string;
+      twitterId?: string; 
+      user?: { twitterId?: string } 
+    };
+    const twitterId = extendedSession.user?.twitterId || extendedSession.twitterId;
+    const accessToken = extendedSession.accessToken;
     
     console.log('Twitter ID from session:', twitterId);
     console.log('Access Token exists:', !!accessToken);
