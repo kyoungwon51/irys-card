@@ -39,7 +39,23 @@ const spriteDescriptions = [
   { name: "Friendly Sprite", description: "Open arms, warm smile, endless connections" }
 ];
 
-// 랜덤 스프라이트 설명 선택 함수
+// 사용자 아이디 기반 스프라이트 설명 선택 함수
+const getSpriteDescriptionByUsername = (username: string) => {
+  if (!username || username.length < 2) {
+    return spriteDescriptions[0]; // 기본값
+  }
+  
+  // 첫 번째와 두 번째 문자의 유니코드 값 계산
+  const firstCharCode = username.charCodeAt(0);
+  const secondCharCode = username.charCodeAt(1);
+  
+  // (첫번째문자 유니코드 + 두번째문자 유니코드) % 20
+  const index = (firstCharCode + secondCharCode) % 20;
+  
+  return spriteDescriptions[index];
+};
+
+// 초기 랜덤 스프라이트 (프로필이 없을 때만 사용)
 const getRandomSpriteDescription = () => {
   return spriteDescriptions[Math.floor(Math.random() * spriteDescriptions.length)];
 };
@@ -152,7 +168,7 @@ export default function TwitterCardGenerator() {
       console.log('Normalized profile:', normalizedProfile);
       
       setProfile(normalizedProfile);
-      setCurrentSprite(getRandomSpriteDescription()); // 새 프로필마다 새로운 스프라이트 선택
+      setCurrentSprite(getSpriteDescriptionByUsername(normalizedProfile.username)); // 아이디 기반 스프라이트 선택
       
       if (data.message) {
         console.log(data.message);
@@ -225,7 +241,7 @@ export default function TwitterCardGenerator() {
       
       console.log('Normalized profile:', normalizedProfile);
       setProfile(normalizedProfile);
-      setCurrentSprite(getRandomSpriteDescription()); // 새 프로필마다 새로운 스프라이트 선택
+      setCurrentSprite(getSpriteDescriptionByUsername(normalizedProfile.username)); // 아이디 기반 스프라이트 선택
     } catch (error) {
       console.error('Connected profile analysis failed:', error);
       // Fallback to basic profile fetch
