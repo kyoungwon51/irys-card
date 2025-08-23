@@ -5,6 +5,35 @@ import { signIn, signOut, useSession } from 'next-auth/react';
 import html2canvas from 'html2canvas';
 import Image from 'next/image';
 
+// 20가지 스프라이트 소개글
+const SPRITE_DESCRIPTIONS = [
+  "Brave Sprite – Fearless spirit, always charging forward.",
+  "Curious Sprite – Explorer of mysteries, seeker of hidden truths.",
+  "Playful Sprite – Brings fun and laughter wherever they go.",
+  "Loyal Sprite – A true companion who never leaves your side.",
+  "Shy Sprite – Quiet presence, gentle soul in the background.",
+  "Energetic Sprite – A spark of endless motion and excitement.",
+  "Gentle Sprite – Soft heart, always careful and kind.",
+  "Clever Sprite – Quick mind, puzzle-solver, sharp thinker.",
+  "Cheerful Sprite – Sunshine in sprite form, always smiling.",
+  "Serious Sprite – Focused, disciplined, and steady-minded.",
+  "Mischievous Sprite – Trickster spirit with a playful grin.",
+  "Caring Sprite – A sprite that heals with kindness.",
+  "Bold Sprite – Dares to leap where others hesitate.",
+  "Patient Sprite – Calm watcher of time, steady as stone.",
+  "Adventurous Sprite – Restless wanderer, always chasing horizons.",
+  "Calm Sprite – Brings peace like still water in chaos.",
+  "Proud Sprite – Holds dignity high, shining with confidence.",
+  "Helpful Sprite – A guiding hand when times get hard.",
+  "Independent Sprite – Walks their own path, strong and free.",
+  "Friendly Sprite – Open arms, warm smile, endless connections."
+];
+
+// 랜덤 스프라이트 소개글 선택 함수
+const getRandomSpriteDescription = () => {
+  return SPRITE_DESCRIPTIONS[Math.floor(Math.random() * SPRITE_DESCRIPTIONS.length)];
+};
+
 interface TwitterTweet {
   id: string;
   text: string;
@@ -401,35 +430,10 @@ export default function TwitterCardGenerator() {
                 </span>
               </div>
               <p className="text-black/80 text-xs leading-relaxed">
-                {profile.bio}
+                {getRandomSpriteDescription()}
               </p>
             </div>
           </div>
-
-          {/* Recent Tweets Section */}
-          {profile.tweets && profile.tweets.length > 0 && (
-            <div className="relative z-10 mb-4">
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20">
-                <h4 className="text-black font-medium text-sm mb-3 flex items-center">
-                  <span className="mr-2">📝</span>
-                  Recent Tweets
-                </h4>
-                <div className="space-y-2 max-h-32 overflow-y-auto">
-                  {profile.tweets.slice(0, 5).map((tweet) => (
-                    <div key={tweet.id} className="bg-white/5 rounded-lg p-2 border border-white/10">
-                      <p className="text-black/70 text-xs leading-tight">
-                        {tweet.text.length > 80 ? `${tweet.text.slice(0, 80)}...` : tweet.text}
-                      </p>
-                      <div className="flex items-center mt-1 text-xs text-black/50 space-x-3">
-                        <span>❤️ {tweet.public_metrics.like_count}</span>
-                        <span>🔁 {tweet.public_metrics.retweet_count}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* Bottom Section */}
           <div className="absolute bottom-6 left-6 right-6 z-10">

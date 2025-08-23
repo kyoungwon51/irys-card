@@ -81,39 +81,28 @@ export async function POST(request: NextRequest) {
     console.log('Fetching profile for username:', username);
 
     try {
-      // 1. 사용자 프로필 정보 가져오기
+      // 사용자 프로필 정보 가져오기
       const profileData = await fetchTwitterUserProfileByUsername(username, accessToken);
       console.log('Profile data received:', profileData);
-      
-      // 2. 사용자의 트윗 가져오기
-      const tweetsData = await fetchUserTweetsByUserId(profileData.id, accessToken);
-      console.log('Tweets data received:', tweetsData?.length, 'tweets');
-      
-      // 3. AI 기반 자기소개 생성
-      const enhancedBio = generateAIBio(profileData, tweetsData);
-      console.log('Enhanced bio generated:', enhancedBio);
       
       const enhancedProfile = {
         ...profileData,
         profileImage: profileData.profile_image_url, // Twitter API 필드를 frontend 형식으로 매핑
-        description: enhancedBio || profileData.description,
-        tweets: tweetsData?.slice(0, 5) || [], // 최근 5개 트윗만 포함
+        description: profileData.description || 'Crypto Twitter User',
       };
       
       return NextResponse.json({ profile: enhancedProfile });
       
     } catch (twitterError) {
       console.error('Twitter API failed:', twitterError);
-      // Fallback to basic profile without tweets
+      // Fallback to basic profile
       try {
         const basicProfile = await fetchTwitterUserProfileByUsername(username, accessToken);
-        const enhancedBio = generatePersonalityBasedBio();
         
         const fallbackProfile = {
           ...basicProfile,
           profileImage: basicProfile.profile_image_url, // Twitter API 필드를 frontend 형식으로 매핑
-          description: enhancedBio || basicProfile.description,
-          tweets: [], // 트윗을 가져올 수 없는 경우 빈 배열
+          description: basicProfile.description || 'Crypto Twitter User',
         };
         
         return NextResponse.json({ profile: fallbackProfile });
