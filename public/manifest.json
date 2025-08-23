@@ -1,0 +1,21 @@
+{
+  "name": "Irys Cards",
+  "short_name": "Irys Cards",
+  "description": "Generate personalized Irys Cards from your Twitter profile",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#50fed6",
+  "theme_color": "#50fed6",
+  "icons": [
+    {
+      "src": "/1.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/1.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

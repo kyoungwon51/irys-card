@@ -17,9 +17,14 @@ export const metadata: Metadata = {
   title: "Irys Cards - AI Twitter Card Generator",
   description: "Generate personalized Irys Cards from your Twitter profile with AI analysis",
   icons: {
-    icon: '/1.png',
+    icon: [
+      { url: '/1.png', sizes: '32x32', type: 'image/png' },
+      { url: '/1.png', sizes: '16x16', type: 'image/png' },
+    ],
     shortcut: '/1.png',
-    apple: '/1.png',
+    apple: [
+      { url: '/1.png', sizes: '180x180', type: 'image/png' },
+    ],
   },
 };
 
@@ -30,6 +35,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
+      <head>
+        <link rel="icon" href="/1.png" type="image/png" />
+        <link rel="shortcut icon" href="/1.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/1.png" />
+        <link rel="manifest" href="/manifest.json" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
