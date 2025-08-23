@@ -308,7 +308,7 @@ export default function TwitterCardGenerator() {
   };
 
   if (!profile) return (
-    <div className="max-w-4xl mx-auto pt-4">
+    <div className="max-w-4xl mx-auto pt-1">
       {/* IRYS Logo */}
       <div className="text-center mb-1">
         <div className="flex justify-center">
@@ -400,7 +400,7 @@ export default function TwitterCardGenerator() {
   );
 
   return (
-    <div className="max-w-4xl mx-auto pt-4">
+    <div className="max-w-4xl mx-auto pt-1">
       {/* IRYS Logo */}
       <div className="text-center mb-0">
         <div className="flex justify-center">
