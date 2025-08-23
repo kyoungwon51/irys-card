@@ -70,6 +70,7 @@ export default function TwitterCardGenerator() {
     const initial = getRandomSpriteDescription();
     return { sprite: initial, index: 0 };
   });
+  const [userNumber, setUserNumber] = useState<number | null>(null);
   
   // 마우스 움직임 효과를 위한 state
   const [cardRotation, setCardRotation] = useState({ x: 0, y: 0 });
@@ -119,6 +120,23 @@ export default function TwitterCardGenerator() {
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
     }
+  };
+
+  // 사용자 번호 관리 함수들
+  const getUserNumber = (username: string): number => {
+    const savedUsers = JSON.parse(localStorage.getItem('irys-connected-users') || '{}');
+    if (savedUsers[username]) {
+      return savedUsers[username];
+    }
+    
+    // 새로운 사용자라면 다음 번호 할당
+    const existingNumbers = Object.values(savedUsers) as number[];
+    const nextNumber = existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 1;
+    
+    savedUsers[username] = nextNumber;
+    localStorage.setItem('irys-connected-users', JSON.stringify(savedUsers));
+    
+    return nextNumber;
   };
 
   // cleanup 함수
@@ -204,6 +222,7 @@ export default function TwitterCardGenerator() {
       
       setProfile(normalizedProfile);
       setCurrentSprite(getSpriteDescriptionByUsername(normalizedProfile.username)); // 아이디 기반 스프라이트 선택
+      setUserNumber(getUserNumber(normalizedProfile.username)); // 사용자 번호 설정
       
       if (data.message) {
         console.log(data.message);
@@ -277,6 +296,7 @@ export default function TwitterCardGenerator() {
       console.log('Normalized profile:', normalizedProfile);
       setProfile(normalizedProfile);
       setCurrentSprite(getSpriteDescriptionByUsername(normalizedProfile.username)); // 아이디 기반 스프라이트 선택
+      setUserNumber(getUserNumber(normalizedProfile.username)); // 사용자 번호 설정
     } catch (error) {
       console.error('Connected profile analysis failed:', error);
       // Fallback to basic profile fetch
@@ -373,23 +393,6 @@ export default function TwitterCardGenerator() {
             </div>
             
             <div className="space-y-4">
-              <form onSubmit={handleManualSearch} className="flex gap-2 max-w-md mx-auto">
-                <input
-                  type="text"
-                  value={inputUsername}
-                  onChange={(e) => setInputUsername(e.target.value)}
-                  placeholder="Enter another username"
-                  className="flex-1 px-4 py-2 bg-white/50 border border-emerald-200 rounded-lg text-black placeholder-black/50 focus:border-emerald-400 focus:outline-none"
-                />
-                <button
-                  type="submit"
-                  disabled={isLoading || !inputUsername.trim()}
-                  className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors"
-                >
-                  {isLoading ? 'Loading...' : 'Generate'}
-                </button>
-              </form>
-              
               <button
                 onClick={handleConnectedUserProfile}
                 disabled={isLoading}
@@ -417,13 +420,13 @@ export default function TwitterCardGenerator() {
   return (
     <div className="max-w-4xl mx-auto">
       {/* IRYS Logo */}
-      <div className="text-center mb-4">
+      <div className="text-center mb-1">
         <div className="flex justify-center">
           <Image 
             src="/iryslogo.png" 
             alt="IRYS" 
             width={300}
-            height={-15}
+            height={75}
             className="w-72 h-auto"
           />
         </div>
@@ -547,7 +550,7 @@ export default function TwitterCardGenerator() {
                   ) : (
                     <div>
                       <div className="text-black font-bold text-lg mb-1">
-                        {currentSprite.sprite.name}
+                        {currentSprite.sprite.name} #{userNumber}
                       </div>
                       <div className="text-black/70 text-sm">
                         {currentSprite.sprite.description}
