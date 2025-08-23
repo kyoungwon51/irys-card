@@ -29,9 +29,38 @@ const SPRITE_DESCRIPTIONS = [
   "Friendly Sprite – Open arms, warm smile, endless connections."
 ];
 
+// 스프라이트 타입 배열 (Big Poster 대신 사용)
+const SPRITE_TYPES = [
+  "Brave Sprite",
+  "Curious Sprite", 
+  "Playful Sprite",
+  "Loyal Sprite",
+  "Shy Sprite",
+  "Energetic Sprite",
+  "Gentle Sprite",
+  "Clever Sprite",
+  "Cheerful Sprite",
+  "Serious Sprite",
+  "Mischievous Sprite",
+  "Caring Sprite",
+  "Bold Sprite",
+  "Patient Sprite",
+  "Adventurous Sprite",
+  "Calm Sprite",
+  "Proud Sprite",
+  "Helpful Sprite",
+  "Independent Sprite",
+  "Friendly Sprite"
+];
+
 // 랜덤 스프라이트 소개글 선택 함수
 const getRandomSpriteDescription = () => {
   return SPRITE_DESCRIPTIONS[Math.floor(Math.random() * SPRITE_DESCRIPTIONS.length)];
+};
+
+// 랜덤 스프라이트 타입 선택 함수
+const getRandomSpriteType = () => {
+  return SPRITE_TYPES[Math.floor(Math.random() * SPRITE_TYPES.length)];
 };
 
 interface TwitterTweet {
@@ -368,10 +397,27 @@ export default function TwitterCardGenerator() {
       <div className="flex flex-col items-center">
         <div 
           ref={cardRef}
-          className="w-80 h-[700px] bg-gradient-to-br from-blue-100 to-purple-100 rounded-3xl p-6 shadow-2xl relative overflow-hidden"
+          className="w-80 h-[600px] bg-gradient-to-br from-blue-100 to-purple-100 rounded-3xl p-6 shadow-2xl relative overflow-hidden transform transition-all duration-300 hover:scale-105 hover:rotate-1 hover:shadow-3xl"
           style={{
             background: 'linear-gradient(135deg, #50fed6 0%, #3dd5c0 25%, #2bbfaa 50%, #1aa994 75%, #0d9488 100%)',
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1)'
+          }}
+          onMouseEnter={(e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            e.currentTarget.style.transform = `perspective(1000px) rotateX(2deg) rotateY(2deg) scale(1.05)`;
+          }}
+          onMouseMove={(e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            const rotateX = (e.clientY - centerY) / 10;
+            const rotateY = (centerX - e.clientX) / 10;
+            e.currentTarget.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.05)`;
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)';
           }}
         >
           {/* Background Pattern */}
@@ -394,15 +440,15 @@ export default function TwitterCardGenerator() {
           </div>
 
           {/* Profile Image */}
-          <div className="relative z-10 flex justify-center mb-4">
+          <div className="relative z-10 flex justify-center mb-6">
             <div className="relative">
-              <div className="w-20 h-20 rounded-2xl overflow-hidden border-4 border-white/20 bg-gradient-to-br from-purple-400 to-blue-600 p-1">
+              <div className="w-28 h-28 rounded-2xl overflow-hidden border-4 border-white/20 bg-gradient-to-br from-purple-400 to-blue-600 p-1">
                 <div className="w-full h-full rounded-xl overflow-hidden bg-white">
                   <Image
                     src={profile.profileImage}
                     alt={profile.displayName}
-                    width={80}
-                    height={80}
+                    width={112}
+                    height={112}
                     className="w-full h-full object-cover"
                     unoptimized
                     onError={(e) => {
@@ -413,8 +459,8 @@ export default function TwitterCardGenerator() {
                 </div>
               </div>
               {/* Sparkle effects */}
-              <div className="absolute -top-1 -right-1 w-3 h-3 text-yellow-300">✨</div>
-              <div className="absolute -bottom-1 -left-1 w-2 h-2 text-blue-300">💫</div>
+              <div className="absolute -top-1 -right-1 w-4 h-4 text-yellow-300">✨</div>
+              <div className="absolute -bottom-1 -left-1 w-3 h-3 text-blue-300">💫</div>
             </div>
           </div>
 
@@ -426,7 +472,7 @@ export default function TwitterCardGenerator() {
                   <span className="text-white text-xs">🔥</span>
                 </div>
                 <span className="text-black font-medium text-sm">
-                  {profile.verified ? "Verified User" : "Big Poster"}
+                  {profile.verified ? "Verified User" : getRandomSpriteType()}
                 </span>
               </div>
               <p className="text-black/80 text-xs leading-relaxed">
