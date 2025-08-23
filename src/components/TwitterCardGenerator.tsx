@@ -131,33 +131,41 @@ export default function TwitterCardGenerator() {
         return 1;
       }
 
-      const savedUsers = JSON.parse(localStorage.getItem('irys-connected-users') || '{}');
+      // 사용자별 번호 저장소 확인
+      const savedUsers = JSON.parse(localStorage.getItem('irys-user-numbers') || '{}');
       console.log('Current saved users:', savedUsers);
       console.log('Looking for username:', username);
       
+      // 이미 번호가 할당된 사용자라면 기존 번호 반환
       if (savedUsers[username]) {
         console.log('Found existing user with number:', savedUsers[username]);
         return savedUsers[username];
       }
       
-      // 새로운 사용자라면 다음 번호 할당
-      const existingNumbers = Object.values(savedUsers) as number[];
-      const nextNumber = existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 1;
+      // 새로운 사용자라면 카운터 증가 후 번호 할당
+      const currentCounter = parseInt(localStorage.getItem('irys-card-counter') || '0');
+      const nextNumber = currentCounter + 1;
       
-      console.log('Existing numbers:', existingNumbers);
-      console.log('Assigning new number:', nextNumber, 'to user:', username);
+      console.log('Current counter:', currentCounter);
+      console.log('Assigning new card number:', nextNumber, 'to user:', username);
+      
+      // 카운터 업데이트
+      localStorage.setItem('irys-card-counter', nextNumber.toString());
+      
+      // 사용자별 번호 저장
       savedUsers[username] = nextNumber;
-      localStorage.setItem('irys-connected-users', JSON.stringify(savedUsers));
-      console.log('Updated saved users:', savedUsers);
+      localStorage.setItem('irys-user-numbers', JSON.stringify(savedUsers));
+      
+      console.log('Updated counter to:', nextNumber);
+      console.log('Updated user numbers:', savedUsers);
       
       return nextNumber;
     } catch (error) {
       console.error('Error in getUserNumber:', error);
-      // 에러 발생 시 localStorage 초기화
       try {
-        localStorage.removeItem('irys-connected-users');
+        localStorage.setItem('irys-card-counter', '1');
         const newUsers = { [username]: 1 };
-        localStorage.setItem('irys-connected-users', JSON.stringify(newUsers));
+        localStorage.setItem('irys-user-numbers', JSON.stringify(newUsers));
         return 1;
       } catch (e) {
         console.error('Failed to access localStorage:', e);
@@ -168,14 +176,16 @@ export default function TwitterCardGenerator() {
 
   // 디버깅을 위한 localStorage 확인 함수
   const checkLocalStorage = () => {
-    const saved = localStorage.getItem('irys-connected-users');
-    console.log('Raw localStorage data:', saved);
-    if (saved) {
+    const counter = localStorage.getItem('irys-card-counter');
+    const users = localStorage.getItem('irys-user-numbers');
+    console.log('Current card counter:', counter);
+    console.log('User numbers:', users);
+    if (users) {
       try {
-        const parsed = JSON.parse(saved);
-        console.log('Parsed localStorage data:', parsed);
+        const parsed = JSON.parse(users);
+        console.log('Parsed user numbers:', parsed);
       } catch (e) {
-        console.error('Failed to parse localStorage:', e);
+        console.error('Failed to parse user numbers:', e);
       }
     }
   };
@@ -468,19 +478,20 @@ export default function TwitterCardGenerator() {
       <div className="text-center mb-4">
         <button
           onClick={() => {
-            localStorage.removeItem('irys-connected-users');
-            console.log('localStorage cleared');
+            localStorage.removeItem('irys-card-counter');
+            localStorage.removeItem('irys-user-numbers');
+            console.log('Card counter and user numbers cleared');
             checkLocalStorage();
           }}
           className="px-4 py-2 bg-red-500 text-white rounded text-sm mr-2"
         >
-          Clear User Numbers
+          Clear All Data
         </button>
         <button
           onClick={checkLocalStorage}
           className="px-4 py-2 bg-blue-500 text-white rounded text-sm"
         >
-          Check localStorage
+          Check Data
         </button>
       </div>
       
@@ -545,7 +556,7 @@ export default function TwitterCardGenerator() {
 
           {/* Card Header */}
           <div className="relative z-10 flex items-center justify-between mb-6">
-            <h3 className="text-xl font-bold text-gray-800">{profile.displayName}</h3>
+            <h3 className="text-xl font-bold text-gray-800">{profile.displayName} #{userNumber}</h3>
             <div className="w-8 h-8 bg-gradient-to-br from-gray-400 to-gray-600 rounded-lg border border-gray-300/50">
             </div>
           </div>
@@ -602,7 +613,7 @@ export default function TwitterCardGenerator() {
                   ) : (
                     <div>
                       <div className="text-black font-bold text-lg mb-1">
-                        {currentSprite.sprite.name} #{userNumber}
+                        {currentSprite.sprite.name}
                       </div>
                       <div className="text-black/70 text-sm">
                         {currentSprite.sprite.description}
