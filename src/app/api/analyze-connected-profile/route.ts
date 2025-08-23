@@ -159,15 +159,20 @@ export async function POST(_request: Request) {
 }
 
 async function fetchTwitterUserProfile(userId: string, accessToken: string | undefined): Promise<TwitterProfile> {
-  if (!accessToken) {
-    throw new Error('No access token available');
+  // 사용자 토큰이 없으면 앱 전용 토큰 사용
+  const bearerToken = accessToken || process.env.TWITTER_BEARER_TOKEN;
+  
+  if (!bearerToken) {
+    throw new Error('No access token or bearer token available');
   }
+  
+  console.log('Using token type:', accessToken ? 'User token' : 'App token');
   
   const response = await fetch(
     `https://api.twitter.com/2/users/${userId}?user.fields=name,description,public_metrics,profile_image_url,verified,location`,
     {
       headers: {
-        'Authorization': `Bearer ${accessToken}`,
+        'Authorization': `Bearer ${bearerToken}`,
       },
     }
   );
@@ -183,15 +188,20 @@ async function fetchTwitterUserProfile(userId: string, accessToken: string | und
 }
 
 async function fetchUserTweets(userId: string, accessToken: string | undefined): Promise<TwitterTweet[]> {
-  if (!accessToken) {
-    throw new Error('No access token available');
+  // 사용자 토큰이 없으면 앱 전용 토큰 사용
+  const bearerToken = accessToken || process.env.TWITTER_BEARER_TOKEN;
+  
+  if (!bearerToken) {
+    throw new Error('No access token or bearer token available');
   }
+  
+  console.log('Fetching tweets with token type:', accessToken ? 'User token' : 'App token');
   
   const response = await fetch(
     `https://api.twitter.com/2/users/${userId}/tweets?max_results=50&tweet.fields=created_at,public_metrics,context_annotations&exclude=retweets,replies`,
     {
       headers: {
-        'Authorization': `Bearer ${accessToken}`,
+        'Authorization': `Bearer ${bearerToken}`,
       },
     }
   );
