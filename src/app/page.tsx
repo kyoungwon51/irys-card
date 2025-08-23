@@ -16,7 +16,7 @@ export default function Home() {
             &ldquo;A token of appreciation for Crypto Twitter&rdquo;
           </p>
           <p className="text-sm text-white/80">
-            Monad Cards 스타일의 트위터 카드를 미리 확인해보세요
+            Create your personalized Twitter card in Monad Cards style
           </p>
         </div>
         

@@ -73,9 +73,9 @@ export default function TwitterCardGenerator() {
       // 데이터 형식 통일
       const normalizedProfile = {
         username: data.profile.username || username,
-        displayName: data.profile.name || data.profile.username,
+        displayName: data.profile.name || data.profile.displayName || data.profile.username,
         profileImage: data.profile.profile_image_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
-        bio: data.profile.description || "크리에이터이자 개발자입니다. 🚀",
+        bio: data.profile.description || "Creator and developer passionate about technology 🚀",
         followers: data.profile.public_metrics?.followers_count || 0,
         following: data.profile.public_metrics?.following_count || 0,
         verified: data.profile.verified || false,
@@ -89,7 +89,7 @@ export default function TwitterCardGenerator() {
       }
     } catch (error) {
       console.error('Profile fetch failed:', error);
-      alert('프로필을 가져오는데 실패했습니다. 사용자명을 확인해주세요.');
+      alert('Failed to fetch profile. Please check the username.');
     } finally {
       setIsLoading(false);
     }
@@ -134,7 +134,7 @@ export default function TwitterCardGenerator() {
       // 데이터 형식 통일
       const normalizedProfile = {
         username: data.profile.username,
-        displayName: data.profile.name,
+        displayName: data.profile.name || data.profile.displayName,
         profileImage: data.profile.profile_image_url,
         bio: data.profile.description,
         followers: data.profile.public_metrics?.followers_count || 0,
@@ -176,10 +176,10 @@ export default function TwitterCardGenerator() {
       <div className="mb-8 text-center">
         <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
           <h3 className="text-white text-xl font-semibold mb-4">
-            Twitter 계정 연결
+            Connect Twitter Account
           </h3>
           <p className="text-white/80 mb-6">
-            Twitter 계정을 연결하여 실제 프로필과 최근 게시물을 기반으로 카드를 생성하세요.
+            Connect your Twitter account to generate cards based on your actual profile and recent posts.
           </p>
           {!session ? (
             <div className="space-y-4">
@@ -189,31 +189,31 @@ export default function TwitterCardGenerator() {
                   className="px-8 py-3 bg-white text-teal-600 hover:bg-gray-100 rounded-lg font-medium transition-colors flex items-center gap-2 mx-auto"
                 >
                   <span>🐦</span>
-                  Twitter로 로그인
+                  Login with Twitter
                 </button>
               ) : (
                 <div className="bg-yellow-500/20 border border-yellow-500/40 rounded-lg p-4">
                   <div className="text-center">
                     <span className="text-yellow-400">⚠️</span>
-                    <p className="text-white mt-2">Twitter OAuth가 설정되지 않았습니다.</p>
+                    <p className="text-white mt-2">Twitter OAuth is not configured.</p>
                     <p className="text-white/80 text-sm mt-1">
-                      현재는 사용자명 입력으로 카드를 생성할 수 있습니다.
+                      You can still create cards by entering a username manually.
                     </p>
                   </div>
                 </div>
               )}
-              <div className="text-white/60 text-sm">또는</div>
+              <div className="text-white/60 text-sm">or</div>
             </div>
           ) : (
             <div className="bg-green-500/20 border border-green-500/40 rounded-lg p-4 mb-4">
               <div className="flex items-center justify-center gap-3">
                 <span className="text-green-400">✅</span>
-                <span className="text-white">@{session.user?.username}로 연결됨</span>
+                <span className="text-white">Connected as @{session.user?.username}</span>
                 <button
                   onClick={() => signOut()}
                   className="text-white/60 hover:text-white text-sm ml-2"
                 >
-                  (연결 해제)
+                  (Disconnect)
                 </button>
               </div>
             </div>
@@ -225,7 +225,7 @@ export default function TwitterCardGenerator() {
                 type="text"
                 value={inputUsername}
                 onChange={(e) => setInputUsername(e.target.value)}
-                placeholder={session ? "다른 사용자명 입력" : "사용자명 직접 입력 (예: elonmusk)"}
+                placeholder={session ? "Enter another username" : "Enter username directly (e.g., elonmusk)"}
                 className="flex-1 px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-white/40 focus:outline-none"
               />
               <button
@@ -233,7 +233,7 @@ export default function TwitterCardGenerator() {
                 disabled={isLoading || !inputUsername.trim()}
                 className="px-6 py-2 bg-teal-600 hover:bg-teal-700 disabled:bg-gray-600 text-white rounded-lg font-medium transition-colors"
               >
-                {isLoading ? '로딩...' : '생성'}
+                {isLoading ? 'Loading...' : 'Generate'}
               </button>
             </form>
             
@@ -246,12 +246,12 @@ export default function TwitterCardGenerator() {
                 {isLoading ? (
                   <>
                     <div className="animate-spin w-4 h-4 border-2 border-white/30 border-t-white rounded-full"></div>
-                    프로필 분석 중...
+                    Analyzing profile...
                   </>
                 ) : (
                   <>
                     <span>✨</span>
-                    내 프로필로 카드 생성
+                    Generate Card with My Profile
                   </>
                 )}
               </button>
@@ -406,22 +406,22 @@ export default function TwitterCardGenerator() {
           className="mt-6 px-8 py-3 bg-white text-purple-600 rounded-lg font-medium hover:bg-gray-100 transition-colors flex items-center gap-2"
         >
           <span>⬇️</span>
-          카드 다운로드
+          Download Card
         </button>
 
         {/* Card Info */}
         <div className="text-center text-white/70 mt-6 max-w-md">
-          <p className="mb-2">🎨 실제 트위터 프로필 기반 Monad Cards</p>
+          <p className="mb-2">🎨 Monad Cards based on real Twitter profiles</p>
           <p className="text-sm">
             {session ? 
-              '실제 Twitter 프로필 정보를 사용하여 카드를 생성합니다' : 
-              'Twitter 연결 후 실제 프로필로 카드를 만들어보세요'
+              'Generate cards using your real Twitter profile information' : 
+              'Connect Twitter and create cards with your real profile'
             }
           </p>
           {profile && (
             <div className="mt-4 p-3 bg-green-500/20 border border-green-500/30 rounded-lg">
               <p className="text-green-200 text-xs">
-                ✅ @{profile.username}의 실제 프로필 정보로 생성된 카드입니다
+                ✅ Card generated with real profile information from @{profile.username}
               </p>
             </div>
           )}
