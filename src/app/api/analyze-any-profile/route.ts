@@ -42,21 +42,26 @@ interface TweetAnalysis {
 export async function POST(request: NextRequest) {
   try {
     const { username } = await request.json()
+    console.log('ANALYZE ANY PROFILE API called with username:', username);
 
     if (!username) {
+      console.log('No username provided');
       return NextResponse.json({ error: 'Username is required' }, { status: 400 })
     }
 
     // 세션에서 액세스 토큰 가져오기 (앱 전용 토큰 사용 가능)
     const session = await getServerSession(authConfig) as { accessToken?: string } | null;
     let accessToken = session?.accessToken;
+    console.log('Session access token exists:', !!accessToken);
 
     // 세션에 액세스 토큰이 없으면 앱 전용 Bearer Token 사용
     if (!accessToken) {
       accessToken = process.env.TWITTER_BEARER_TOKEN;
+      console.log('Using bearer token, exists:', !!accessToken);
     }
 
     if (!accessToken) {
+      console.log('No access token available');
       return NextResponse.json({ error: 'Twitter API access not available' }, { status: 401 })
     }
 
@@ -115,6 +120,7 @@ export async function POST(request: NextRequest) {
 }
 
 async function fetchTwitterUserProfileByUsername(username: string, accessToken: string): Promise<TwitterProfile> {
+  console.log('Fetching Twitter profile for:', username);
   const response = await fetch(
     `https://api.twitter.com/2/users/by/username/${username}?user.fields=name,description,public_metrics,profile_image_url,verified,location`,
     {
@@ -124,12 +130,23 @@ async function fetchTwitterUserProfileByUsername(username: string, accessToken: 
     }
   );
   
+  console.log('Twitter API response status:', response.status);
+  
   if (!response.ok) {
-    throw new Error(`Twitter API error: ${response.status}`);
+    const errorText = await response.text();
+    console.error('Twitter API error details:', {
+      status: response.status,
+      statusText: response.statusText,
+      errorData: errorText
+    });
+    throw new Error(`Twitter API error: ${response.status} - ${errorText}`);
   }
   
   const data = await response.json();
+  console.log('Twitter API response data:', data);
+  
   if (!data.data) {
+    console.error('No user data in response:', data);
     throw new Error('User not found');
   }
   return data.data;
