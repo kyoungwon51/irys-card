@@ -125,7 +125,11 @@ export default function TwitterCardGenerator() {
   // 사용자 번호 관리 함수들
   const getUserNumber = (username: string): number => {
     const savedUsers = JSON.parse(localStorage.getItem('irys-connected-users') || '{}');
+    console.log('Current saved users:', savedUsers);
+    console.log('Looking for username:', username);
+    
     if (savedUsers[username]) {
+      console.log('Found existing user with number:', savedUsers[username]);
       return savedUsers[username];
     }
     
@@ -133,8 +137,10 @@ export default function TwitterCardGenerator() {
     const existingNumbers = Object.values(savedUsers) as number[];
     const nextNumber = existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 1;
     
+    console.log('Assigning new number:', nextNumber, 'to user:', username);
     savedUsers[username] = nextNumber;
     localStorage.setItem('irys-connected-users', JSON.stringify(savedUsers));
+    console.log('Updated saved users:', savedUsers);
     
     return nextNumber;
   };
@@ -222,7 +228,9 @@ export default function TwitterCardGenerator() {
       
       setProfile(normalizedProfile);
       setCurrentSprite(getSpriteDescriptionByUsername(normalizedProfile.username)); // 아이디 기반 스프라이트 선택
-      setUserNumber(getUserNumber(normalizedProfile.username)); // 사용자 번호 설정
+      const userNum = getUserNumber(normalizedProfile.username);
+      console.log('Setting user number:', userNum, 'for user:', normalizedProfile.username);
+      setUserNumber(userNum); // 사용자 번호 설정
       
       if (data.message) {
         console.log(data.message);
@@ -296,7 +304,9 @@ export default function TwitterCardGenerator() {
       console.log('Normalized profile:', normalizedProfile);
       setProfile(normalizedProfile);
       setCurrentSprite(getSpriteDescriptionByUsername(normalizedProfile.username)); // 아이디 기반 스프라이트 선택
-      setUserNumber(getUserNumber(normalizedProfile.username)); // 사용자 번호 설정
+      const userNum = getUserNumber(normalizedProfile.username);
+      console.log('Setting connected user number:', userNum, 'for user:', normalizedProfile.username);
+      setUserNumber(userNum); // 사용자 번호 설정
     } catch (error) {
       console.error('Connected profile analysis failed:', error);
       // Fallback to basic profile fetch
