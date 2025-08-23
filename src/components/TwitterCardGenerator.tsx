@@ -352,24 +352,6 @@ export default function TwitterCardGenerator() {
                   </div>
                 </div>
               )}
-              <div className="text-black/60 text-sm">or</div>
-              
-              <form onSubmit={handleManualSearch} className="flex gap-2 max-w-md mx-auto">
-                <input
-                  type="text"
-                  value={inputUsername}
-                  onChange={(e) => setInputUsername(e.target.value)}
-                  placeholder="Enter username directly (e.g., elonmusk)"
-                  className="flex-1 px-4 py-2 bg-white/50 border border-emerald-200 rounded-lg text-black placeholder-black/50 focus:border-emerald-400 focus:outline-none"
-                />
-                <button
-                  type="submit"
-                  disabled={isLoading || !inputUsername.trim()}
-                  className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors"
-                >
-                  {isLoading ? 'Loading...' : 'Generate'}
-                </button>
-              </form>
             </div>
           </div>
         </div>
