@@ -70,12 +70,15 @@ export default function TwitterCardGenerator() {
       
       const data = await response.json();
       console.log('API Response:', data); // 디버깅용
+      console.log('Profile from API:', data.profile);
+      console.log('ProfileImage field:', data.profile?.profileImage);
+      console.log('Profile_image_url field:', data.profile?.profile_image_url);
       
       // 데이터 형식 통일
       const normalizedProfile = {
         username: data.profile.username || username,
         displayName: data.profile.name || data.profile.displayName || data.profile.username,
-        profileImage: data.profile.profile_image_url || data.profile.profileImage || `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}&backgroundColor=50fed6`,
+        profileImage: data.profile.profileImage || data.profile.profile_image_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}&backgroundColor=50fed6`,
         bio: data.profile.description || "Creator and developer passionate about technology 🚀",
         followers: data.profile.public_metrics?.followers_count || 0,
         following: data.profile.public_metrics?.following_count || 0,
