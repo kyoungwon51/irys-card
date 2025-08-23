@@ -104,11 +104,18 @@ export default function TwitterCardGenerator() {
       console.log('ProfileImage field:', data.profile?.profileImage);
       console.log('Profile_image_url field:', data.profile?.profile_image_url);
       
+      // 이미지 URL을 고해상도로 변환하는 함수
+      const getHighQualityImageUrl = (imageUrl: string) => {
+        if (!imageUrl) return imageUrl;
+        // Twitter 이미지 URL에서 _normal을 _400x400으로 변경하여 고해상도 이미지 가져오기
+        return imageUrl.replace('_normal', '_400x400');
+      };
+      
       // 데이터 형식 통일
       const normalizedProfile = {
         username: data.profile.username || username,
         displayName: data.profile.name || data.profile.displayName || data.profile.username,
-        profileImage: data.profile.profileImage || data.profile.profile_image_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}&backgroundColor=50fed6`,
+        profileImage: getHighQualityImageUrl(data.profile.profileImage || data.profile.profile_image_url) || `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}&backgroundColor=50fed6`,
         bio: data.profile.description || "Creator and developer passionate about technology 🚀",
         followers: data.profile.public_metrics?.followers_count || 0,
         following: data.profile.public_metrics?.following_count || 0,
@@ -172,11 +179,18 @@ export default function TwitterCardGenerator() {
       console.log('Connected ProfileImage field:', data.profile?.profileImage);
       console.log('Connected Profile_image_url field:', data.profile?.profile_image_url);
       
+      // 이미지 URL을 고해상도로 변환하는 함수
+      const getHighQualityImageUrl = (imageUrl: string) => {
+        if (!imageUrl) return imageUrl;
+        // Twitter 이미지 URL에서 _normal을 _400x400으로 변경하여 고해상도 이미지 가져오기
+        return imageUrl.replace('_normal', '_400x400');
+      };
+      
       // 데이터 형식 통일
       const normalizedProfile = {
         username: data.profile.username,
         displayName: data.profile.name || data.profile.displayName,
-        profileImage: data.profile.profileImage || data.profile.profile_image_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${data.profile.username}&backgroundColor=50fed6`,
+        profileImage: getHighQualityImageUrl(data.profile.profileImage || data.profile.profile_image_url) || `https://api.dicebear.com/7.x/avataaars/svg?seed=${data.profile.username}&backgroundColor=50fed6`,
         bio: data.profile.description,
         followers: data.profile.public_metrics?.followers_count || 0,
         following: data.profile.public_metrics?.following_count || 0,
@@ -369,13 +383,13 @@ export default function TwitterCardGenerator() {
           {/* Profile Image */}
           <div className="relative z-10 flex justify-center mb-6">
             <div className="relative">
-              <div className="w-32 h-32 rounded-2xl overflow-hidden border-4 border-emerald-200/50 bg-gradient-to-br from-emerald-400 to-emerald-600 p-1">
+              <div className="w-64 h-64 rounded-2xl overflow-hidden border-4 border-emerald-200/50 bg-gradient-to-br from-emerald-400 to-emerald-600 p-1">
                 <div className="w-full h-full rounded-xl overflow-hidden bg-white">
                   <Image
                     src={profile.profileImage}
                     alt={profile.displayName}
-                    width={120}
-                    height={120}
+                    width={256}
+                    height={256}
                     className="w-full h-full object-cover"
                     unoptimized
                     onError={(e) => {

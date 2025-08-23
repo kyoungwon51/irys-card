@@ -2,6 +2,19 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authConfig } from '@/lib/auth';
 
+// Twitter 프로필 이미지를 고화질로 변환하는 함수
+function getHighQualityProfileImage(profileImageUrl: string | undefined): string {
+  if (!profileImageUrl) {
+    return '';
+  }
+  
+  // _normal을 제거하여 원본 크기 이미지 가져오기
+  // 또는 _400x400 같은 더 큰 크기로 교체
+  return profileImageUrl
+    .replace('_normal', '_400x400')
+    .replace('_bigger', '_400x400');
+}
+
 interface TwitterSession {
   user?: {
     twitterId?: string;
@@ -88,8 +101,8 @@ export async function POST(_request: Request) {
         username: profileData.username,
         name: profileData.name,
         description: enhancedBio || profileData.description,
-        profileImage: profileData.profile_image_url, // Twitter API 필드를 frontend 형식으로 매핑
-        profile_image_url: profileData.profile_image_url, // 백워드 호환성을 위해 둘 다 제공
+        profileImage: getHighQualityProfileImage(profileData.profile_image_url), // Twitter API 필드를 frontend 형식으로 매핑
+        profile_image_url: getHighQualityProfileImage(profileData.profile_image_url), // 백워드 호환성을 위해 둘 다 제공
         public_metrics: profileData.public_metrics,
         verified: profileData.verified,
         location: profileData.location,
@@ -117,8 +130,8 @@ export async function POST(_request: Request) {
         name: sessionUser.user?.name || sessionUser.user?.displayName || 'User',
         displayName: sessionUser.user?.name || sessionUser.user?.displayName || 'User',
         description: '',
-        profileImage: sessionUser.user?.image || sessionUser.user?.profileImage || `https://api.dicebear.com/7.x/avataaars/svg?seed=${sessionUser.user?.username}&backgroundColor=50fed6`,
-        profile_image_url: sessionUser.user?.image || sessionUser.user?.profileImage || `https://api.dicebear.com/7.x/avataaars/svg?seed=${sessionUser.user?.username}&backgroundColor=50fed6`,
+        profileImage: getHighQualityProfileImage(sessionUser.user?.image || sessionUser.user?.profileImage) || `https://api.dicebear.com/7.x/avataaars/svg?seed=${sessionUser.user?.username}&backgroundColor=50fed6`,
+        profile_image_url: getHighQualityProfileImage(sessionUser.user?.image || sessionUser.user?.profileImage) || `https://api.dicebear.com/7.x/avataaars/svg?seed=${sessionUser.user?.username}&backgroundColor=50fed6`,
         public_metrics: {
           followers_count: Math.floor(Math.random() * 10000) + 500,
           following_count: Math.floor(Math.random() * 1000) + 100,
