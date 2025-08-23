@@ -73,7 +73,7 @@ export default function TwitterCardGenerator() {
   const [isHovering, setIsHovering] = useState(false);
   
   const cardRef = useRef<HTMLDivElement>(null);
-  const animationFrameRef = useRef<number>();
+  const animationFrameRef = useRef<number | null>(null);
 
   // 마우스 움직임에 따른 카드 틸트 효과 (개선된 버전)
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
