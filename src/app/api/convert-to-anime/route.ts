@@ -124,7 +124,8 @@ async function convertWithAI(imageUrl: string, style: keyof typeof STYLE_CONVERS
 
 // Replicate를 사용한 변환  
 async function convertWithReplicate(imageUrl: string, style: keyof typeof STYLE_CONVERSION_OPTIONS) {
-  const Replicate = require('replicate');
+  // Replicate 동적 import
+  const { default: Replicate } = await import('replicate');
   const replicate = new Replicate({
     auth: process.env.REPLICATE_API_TOKEN,
   });
@@ -132,8 +133,8 @@ async function convertWithReplicate(imageUrl: string, style: keyof typeof STYLE_
   const config = STYLE_CONVERSION_OPTIONS[style];
   
   // 스타일별로 다른 모델 사용
-  let modelId;
-  let input;
+  let modelId: `${string}/${string}:${string}`;
+  let input: Record<string, unknown>;
   
   switch(style) {
     case 'anime':

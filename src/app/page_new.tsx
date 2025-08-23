@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import TwitterCardGenerator from '@/components/TwitterCardGenerator';
 
 export default function Home() {
@@ -12,7 +11,7 @@ export default function Home() {
             MONAD CARDS
           </h1>
           <p className="text-lg text-gray-300 mb-2">
-            "A token of appreciation for Crypto Twitter"
+            &quot;A token of appreciation for Crypto Twitter&quot;
           </p>
           <p className="text-sm text-gray-400">
             트위터 프로필을 연결하여 나만의 카드를 생성하세요

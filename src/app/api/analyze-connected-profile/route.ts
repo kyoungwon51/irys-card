@@ -1,14 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
+import { getServerSession } from 'next-auth';
 import { authConfig } from '@/lib/auth';
-
-interface TwitterSession {
-  user?: {
-    twitterId?: string;
-    username?: string;
-  };
-  accessToken?: string;
-}
 
 interface TwitterProfile {
   username: string;
@@ -23,19 +15,19 @@ interface TwitterProfile {
   location?: string;
 }
 
-interface TwitterTweet {
-  id: string;
-  text: string;
-  created_at: string;
-  public_metrics: {
-    like_count: number;
-    retweet_count: number;
-    reply_count: number;
-    quote_count: number;
+interface TwitterSession {
+  user?: {
+    username?: string;
+    name?: string;
+    image?: string;
+    displayName?: string;
+    profileImage?: string;
+    twitterId?: string;
   };
+  accessToken?: string;
 }
 
-export async function POST(_request: Request) {
+export async function POST() {
   try {
     console.log('Analyze Connected Profile API called');
     
@@ -45,17 +37,15 @@ export async function POST(_request: Request) {
     
     if (!session || !session.user) {
       console.log('No session found');
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json(
+        { error: 'Not authenticated' },
+        { status: 401 }
+      );
     }
 
-    // 세션에서 트위터 ID와 토큰 추출
-    const extendedSession = session as TwitterSession & { 
-      accessToken?: string;
-      twitterId?: string; 
-      user?: { twitterId?: string } 
-    };
-    const twitterId = extendedSession.user?.twitterId || extendedSession.twitterId;
-    const accessToken = extendedSession.accessToken;
+    // 세션에서 Twitter ID와 액세스 토큰 추출
+    const twitterId = (session as TwitterSession & { user?: { twitterId?: string } }).user?.twitterId;
+    const accessToken = (session as TwitterSession & { accessToken?: string }).accessToken;
     
     console.log('Twitter ID from session:', twitterId);
     console.log('Access Token exists:', !!accessToken);
@@ -105,7 +95,7 @@ export async function POST(_request: Request) {
       
       const fallbackProfile = {
         ...sessionProfile,
-        description: 'Web3 enthusiast building the future of decentralized technology. Always learning, always growing.',
+        description: generatePersonalityBasedBio(),
       };
       
       return NextResponse.json({ profile: fallbackProfile });
@@ -128,10 +118,10 @@ async function fetchTwitterUserProfile(userId: string, accessToken: string | und
     throw new Error('No access token or bearer token available');
   }
   
-  console.log('Using token type:', accessToken ? 'User token' : 'App token');
+  console.log('Fetching user profile with token type:', accessToken ? 'User token' : 'App token');
   
   const response = await fetch(
-    `https://api.twitter.com/2/users/${userId}?user.fields=name,description,public_metrics,profile_image_url,verified,location`,
+    `https://api.twitter.com/2/users/${userId}?user.fields=description,public_metrics,verified,location,profile_image_url`,
     {
       headers: {
         'Authorization': `Bearer ${bearerToken}`,
@@ -141,10 +131,27 @@ async function fetchTwitterUserProfile(userId: string, accessToken: string | und
   
   if (!response.ok) {
     const errorText = await response.text();
-    console.error(`Twitter API profile error: ${response.status} - ${errorText}`);
+    console.error(`Twitter API error: ${response.status} - ${errorText}`);
     throw new Error(`Twitter API error: ${response.status} - ${errorText}`);
   }
   
   const data = await response.json();
   return data.data;
+}
+
+function generatePersonalityBasedBio(): string {
+  const bios = [
+    'Passionate Web3 builder and blockchain enthusiast. Always exploring the intersection of technology and innovation. 🚀',
+    'Digital nomad crafting the future of decentralized technology. Community-driven and always learning. ⛓️',
+    'Innovator at heart, exploring the endless possibilities of blockchain and AI. Building tomorrow, today. 🌟',
+    'Tech visionary with a passion for creating meaningful solutions. Bridging the gap between ideas and reality. 💡',
+    'Entrepreneur and developer pushing the boundaries of what is possible in Web3. Dream big, build bigger. 🔥',
+    'Creative technologist combining art and code to build beautiful, functional experiences. Innovation through iteration. ✨',
+    'Community builder fostering connections and collaboration in the decentralized world. Together we rise. 🤝',
+    'Data-driven decision maker with a keen eye for emerging trends. Analytics meets intuition. 📊',
+    'Lifelong learner constantly evolving with the rapidly changing tech landscape. Curiosity fuels growth. 🧠',
+    'Strategic thinker translating complex concepts into accessible solutions. Clarity through complexity. 🎯'
+  ];
+  
+  return bios[Math.floor(Math.random() * bios.length)];
 }
