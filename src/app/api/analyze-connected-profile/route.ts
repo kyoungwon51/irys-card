@@ -41,25 +41,30 @@ export async function POST(_request: Request) {
     
     const session = await getServerSession(authConfig) as TwitterSession;
     
+    console.log('Full session object:', JSON.stringify(session, null, 2));
+    
     if (!session || !session.user) {
       console.log('No session found');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const twitterId = session.user.twitterId;
+    // 세션에서 트위터 ID와 토큰 추출
+    const twitterId = (session as any).user?.twitterId || (session as any).twitterId;
+    const accessToken = (session as any).accessToken;
+    
     console.log('Twitter ID from session:', twitterId);
-    console.log('Access Token exists:', !!session.accessToken);
+    console.log('Access Token exists:', !!accessToken);
     
     // 실제 Twitter API 호출 시도
     try {
       console.log('Attempting to fetch Twitter profile...');
       console.log('Twitter ID:', twitterId);
-      console.log('Access Token (first 10 chars):', session.accessToken?.substring(0, 10) + '...');
+      console.log('Access Token (first 10 chars):', accessToken?.substring(0, 10) + '...');
       
-      const profileData = await fetchTwitterUserProfile(twitterId!, session.accessToken);
+      const profileData = await fetchTwitterUserProfile(twitterId!, accessToken);
       console.log('Profile data received:', JSON.stringify(profileData, null, 2));
       
-      const tweetsData = await fetchUserTweets(twitterId!, session.accessToken);
+      const tweetsData = await fetchUserTweets(twitterId!, accessToken);
       console.log('Tweets data received:', tweetsData?.length, 'tweets');
       console.log('First tweet:', tweetsData?.[0]);
       
