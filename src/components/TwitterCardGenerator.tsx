@@ -42,7 +42,7 @@ const spriteDescriptions = [
 // 사용자 아이디 기반 스프라이트 설명 선택 함수
 const getSpriteDescriptionByUsername = (username: string) => {
   if (!username || username.length < 2) {
-    return spriteDescriptions[0]; // 기본값
+    return { sprite: spriteDescriptions[0], index: 0 }; // 기본값
   }
   
   // 첫 번째와 두 번째 문자의 유니코드 값 계산
@@ -52,7 +52,7 @@ const getSpriteDescriptionByUsername = (username: string) => {
   // (첫번째문자 유니코드 + 두번째문자 유니코드) % 20
   const index = (firstCharCode + secondCharCode) % 20;
   
-  return spriteDescriptions[index];
+  return { sprite: spriteDescriptions[index], index: index };
 };
 
 // 초기 랜덤 스프라이트 (프로필이 없을 때만 사용)
@@ -66,7 +66,10 @@ export default function TwitterCardGenerator() {
   const [isLoading, setIsLoading] = useState(false);
   const [inputUsername, setInputUsername] = useState('');
   const [hasTwitterCredentials, setHasTwitterCredentials] = useState(false);
-  const [currentSprite, setCurrentSprite] = useState(getRandomSpriteDescription());
+  const [currentSprite, setCurrentSprite] = useState(() => {
+    const initial = getRandomSpriteDescription();
+    return { sprite: initial, index: 0 };
+  });
   
   // 마우스 움직임 효과를 위한 state
   const [cardRotation, setCardRotation] = useState({ x: 0, y: 0 });
@@ -289,7 +292,7 @@ export default function TwitterCardGenerator() {
             src="/iryslogo.png" 
             alt="IRYS" 
             width={300}
-            height={75}
+            height={30}
             className="w-72 h-auto"
           />
         </div>
@@ -416,7 +419,7 @@ export default function TwitterCardGenerator() {
             src="/iryslogo.png" 
             alt="IRYS" 
             width={300}
-            height={75}
+            height={30}
             className="w-72 h-auto"
           />
         </div>
@@ -424,20 +427,39 @@ export default function TwitterCardGenerator() {
       
       {/* Card Preview */}
       <div className="flex flex-col items-center">
+        {/* Outer glow container */}
         <div 
-          ref={cardRef}
-          className="w-80 h-[500px] bg-white rounded-3xl p-6 shadow-2xl relative overflow-hidden border-2 border-emerald-200/50 hover:border-emerald-300/70 transition-all duration-300 hover:shadow-emerald-200/50"
-          onMouseMove={handleMouseMove}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
+          className="relative"
           style={{
-            transform: `perspective(1000px) rotateX(${cardRotation.x}deg) rotateY(${cardRotation.y}deg)`,
-            transformStyle: 'preserve-3d',
-            transition: isHovering ? 'transform 0.05s ease-out, border-color 0.3s ease, box-shadow 0.3s ease' : 'transform 0.5s ease-out, border-color 0.3s ease, box-shadow 0.3s ease',
-            background: 'white',
-            boxShadow: `0 ${25 + Math.abs(cardRotation.x) * 2}px ${50 + Math.abs(cardRotation.y) * 2}px -12px rgba(0, 0, 0, ${0.25 + Math.abs(cardRotation.x + cardRotation.y) * 0.01}), 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 0 ${20 + Math.abs(cardRotation.x + cardRotation.y) * 3}px rgba(192, 192, 192, ${Math.abs(cardRotation.x + cardRotation.y) * 0.03})`
+            filter: `drop-shadow(0 0 ${30 + Math.abs(cardRotation.x + cardRotation.y) * 2}px rgba(16, 185, 129, ${0.3 + Math.abs(cardRotation.x + cardRotation.y) * 0.02})) drop-shadow(0 0 ${50 + Math.abs(cardRotation.x + cardRotation.y) * 3}px rgba(255, 255, 255, ${0.1 + Math.abs(cardRotation.x + cardRotation.y) * 0.01}))`,
+            transition: 'filter 0.3s ease-out'
           }}
         >
+          {/* Ambient light effect */}
+          <div 
+            className="absolute inset-0 rounded-3xl pointer-events-none"
+            style={{
+              background: `radial-gradient(ellipse at center, rgba(16, 185, 129, ${0.15 + Math.abs(cardRotation.x + cardRotation.y) * 0.01}) 0%, rgba(255, 255, 255, ${0.05 + Math.abs(cardRotation.x + cardRotation.y) * 0.005}) 30%, transparent 70%)`,
+              transform: 'scale(1.2)',
+              opacity: isHovering ? 1 : 0.7,
+              transition: 'opacity 0.3s ease-out, background 0.2s ease-out'
+            }}
+          ></div>
+          
+          <div 
+            ref={cardRef}
+            className="w-80 h-[500px] bg-white rounded-3xl p-6 shadow-2xl relative overflow-hidden border-2 border-emerald-200/50 hover:border-emerald-300/70 transition-all duration-300 hover:shadow-emerald-200/50"
+            onMouseMove={handleMouseMove}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            style={{
+              transform: `perspective(1000px) rotateX(${cardRotation.x}deg) rotateY(${cardRotation.y}deg)`,
+              transformStyle: 'preserve-3d',
+              transition: isHovering ? 'transform 0.05s ease-out, border-color 0.3s ease, box-shadow 0.3s ease' : 'transform 0.5s ease-out, border-color 0.3s ease, box-shadow 0.3s ease',
+              background: 'white',
+              boxShadow: `0 ${25 + Math.abs(cardRotation.x) * 2}px ${50 + Math.abs(cardRotation.y) * 2}px -12px rgba(0, 0, 0, ${0.25 + Math.abs(cardRotation.x + cardRotation.y) * 0.01}), 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 0 ${20 + Math.abs(cardRotation.x + cardRotation.y) * 3}px rgba(192, 192, 192, ${Math.abs(cardRotation.x + cardRotation.y) * 0.03})`
+            }}
+          >
           {/* Holographic shimmer overlay */}
           <div 
             className="absolute inset-0 pointer-events-none opacity-40"
@@ -521,19 +543,33 @@ export default function TwitterCardGenerator() {
           {/* Bio Section */}
           <div className="relative z-10 mb-6">
             <div className="bg-emerald-50/80 backdrop-blur-sm rounded-xl p-4 border border-emerald-200/50">
-              <div className="flex items-center justify-center">
-                <div className="w-6 h-6 bg-emerald-100 rounded-lg flex items-center justify-center mr-3">
+              <div className="flex items-center">
+                {/* 스프라이트 이미지 */}
+                <div className="w-12 h-12 rounded-lg overflow-hidden mr-3 flex-shrink-0">
+                  <Image
+                    src={`/${currentSprite.index + 1}.png`}
+                    alt={currentSprite.sprite.name}
+                    width={48}
+                    height={48}
+                    className="w-full h-full object-cover"
+                    unoptimized
+                    onError={(e) => {
+                      console.log('Sprite image loading error:', `/${currentSprite.index + 1}.png`);
+                      // 에러 시 기본 이미지나 빈 div로 대체할 수 있습니다
+                    }}
+                  />
                 </div>
-                <div className="text-center">
+                
+                <div className="text-left flex-1">
                   {profile.verified ? (
                     <span className="text-black font-medium">Verified User</span>
                   ) : (
                     <div>
                       <div className="text-black font-bold text-lg mb-1">
-                        {currentSprite.name}
+                        {currentSprite.sprite.name}
                       </div>
                       <div className="text-black/70 text-sm">
-                        {currentSprite.description}
+                        {currentSprite.sprite.description}
                       </div>
                     </div>
                   )}
@@ -598,6 +634,7 @@ export default function TwitterCardGenerator() {
               boxShadow: '0 0 12px rgba(192, 192, 192, 0.6)'
             }}
           ></div>
+          </div>
         </div>
       </div>
     </div>
