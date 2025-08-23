@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Irys Cards - AI Twitter Card Generator",
+  title: "IRYS CARD",
   description: "Generate personalized Irys Cards from your Twitter profile with AI analysis",
   icons: {
     icon: [
