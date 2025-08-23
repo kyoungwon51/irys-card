@@ -363,31 +363,24 @@ export default function TwitterCardGenerator() {
           </div>
         </div>
       )}
-      
-      {/* 빈 카드 영역 */}
-      <div className="flex flex-col items-center">
-        <div 
-          className="w-80 h-[500px] bg-white backdrop-blur-lg border-2 border-emerald-200/50 rounded-3xl flex items-center justify-center shadow-2xl hover:shadow-emerald-200/50 transition-all duration-300"
-          onMouseMove={handleMouseMove}
-          onMouseLeave={handleMouseLeave}
-          style={{
-            transform: `perspective(1000px) rotateX(${cardRotation.x}deg) rotateY(${cardRotation.y}deg)`,
-            transformStyle: 'preserve-3d',
-            transition: 'transform 0.1s ease-out',
-          }}
-        >
-          <div className="text-center text-emerald-800/60">
-            <div className="text-6xl mb-4">📱</div>
-            <p className="text-lg font-medium">카드가 여기에 표시됩니다</p>
-            <p className="text-sm mt-2">사용자명을 입력하고 생성 버튼을 눌러주세요</p>
-          </div>
-        </div>
-      </div>
     </div>
   );
 
   return (
     <div className="max-w-4xl mx-auto">
+      {/* IRYS Logo */}
+      <div className="text-center mb-6">
+        <div className="flex justify-center">
+          <Image 
+            src="/iryslogo.png" 
+            alt="IRYS" 
+            width={300}
+            height={75}
+            className="w-72 h-auto"
+          />
+        </div>
+      </div>
+      
       {/* Card Preview */}
       <div className="flex flex-col items-center">
         <div 
@@ -399,7 +392,7 @@ export default function TwitterCardGenerator() {
             transform: `perspective(1000px) rotateX(${cardRotation.x}deg) rotateY(${cardRotation.y}deg)`,
             transformStyle: 'preserve-3d',
             transition: 'transform 0.1s ease-out',
-            background: 'linear-gradient(135deg, #50fed6 0%, #3dd5c0 25%, #2bbfaa 50%, #1aa994 75%, #0d9488 100%)',
+            background: 'white',
             boxShadow: `0 ${25 + Math.abs(cardRotation.x) * 2}px ${50 + Math.abs(cardRotation.y) * 2}px -12px rgba(0, 0, 0, ${0.25 + Math.abs(cardRotation.x + cardRotation.y) * 0.01}), 0 0 0 1px rgba(255, 255, 255, 0.1)`
           }}
         >
