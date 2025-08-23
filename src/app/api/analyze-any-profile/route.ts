@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
       // Fallback to basic profile without tweets
       try {
         const basicProfile = await fetchTwitterUserProfileByUsername(username, accessToken);
-        const enhancedBio = generatePersonalityBasedBio(basicProfile);
+        const enhancedBio = generatePersonalityBasedBio();
         
         const fallbackProfile = {
           ...basicProfile,
@@ -155,11 +155,11 @@ async function fetchUserTweetsByUserId(userId: string, accessToken: string): Pro
 
 function generateAIBio(profile: TwitterProfile, tweets: TwitterTweet[]): string {
   if (!tweets || tweets.length === 0) {
-    return generatePersonalityBasedBio(profile);
+    return generatePersonalityBasedBio();
   }
 
   const analysis = performDeepTweetAnalysis(tweets);
-  return createPersonalizedBio(analysis, profile);
+  return createPersonalizedBio(analysis);
 }
 
 function performDeepTweetAnalysis(tweets: TwitterTweet[]): TweetAnalysis {
@@ -215,7 +215,7 @@ function performDeepTweetAnalysis(tweets: TwitterTweet[]): TweetAnalysis {
   };
 }
 
-function createPersonalizedBio(analysis: TweetAnalysis, _profile: TwitterProfile): string {
+function createPersonalizedBio(analysis: TweetAnalysis): string {
   const { personality, interests, expertise, tone, activity } = analysis;
   
   // Personality-based prefix
@@ -269,7 +269,7 @@ function createPersonalizedBio(analysis: TweetAnalysis, _profile: TwitterProfile
   return `${prefix} ${mainFocus} | ${secondary} ${ending}`;
 }
 
-function generatePersonalityBasedBio(_profile: TwitterProfile): string {
+function generatePersonalityBasedBio(): string {
   // Generate bio using profile info only when no tweets available
   const bioTemplates = [
     'Creator pursuing new technology and innovation 🚀',
