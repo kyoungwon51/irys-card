@@ -164,7 +164,7 @@ export default function TwitterCardGenerator() {
       const normalizedProfile = {
         username: data.profile.username,
         displayName: data.profile.name || data.profile.displayName,
-        profileImage: data.profile.profile_image_url,
+        profileImage: data.profile.profileImage || data.profile.profile_image_url,
         bio: data.profile.description,
         followers: data.profile.public_metrics?.followers_count || 0,
         following: data.profile.public_metrics?.following_count || 0,
