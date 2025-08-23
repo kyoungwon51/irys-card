@@ -476,52 +476,6 @@ export default function TwitterCardGenerator() {
         </div>
       </div>
       
-      {/* 임시 디버깅 버튼 */}
-      <div className="text-center mb-4">
-        <button
-          onClick={async () => {
-            try {
-              const response = await fetch('/api/stats');
-              const data = await response.json();
-              if (data.success) {
-                console.log('=== DATABASE STATS ===');
-                console.log('Total users:', data.stats.totalUsers);
-                console.log('Current counter:', data.stats.currentCounter);
-                console.log('Recent users:', data.stats.recentUsers);
-                alert(`Database Stats:\nTotal Users: ${data.stats.totalUsers}\nCurrent Counter: ${data.stats.currentCounter}`);
-              }
-            } catch (error) {
-              console.error('Failed to fetch stats:', error);
-            }
-          }}
-          className="px-4 py-2 bg-blue-500 text-white rounded text-sm mr-2"
-        >
-          📊 DB Stats
-        </button>
-        <button
-          onClick={async () => {
-            if (profile?.username) {
-              try {
-                const response = await fetch(`/api/users?username=${profile.username}`);
-                const data = await response.json();
-                if (data.success) {
-                  console.log('=== USER INFO ===');
-                  console.log('User data:', data.user);
-                  alert(`User #${data.user.userNumber}: ${data.user.displayName}\nCreated: ${new Date(data.user.createdAt).toLocaleString()}`);
-                } else {
-                  alert('User not found in database');
-                }
-              } catch (error) {
-                console.error('Failed to fetch user info:', error);
-              }
-            }
-          }}
-          className="px-4 py-2 bg-green-500 text-white rounded text-sm"
-        >
-          � User Info
-        </button>
-      </div>
-      
       {/* Card Preview */}
       <div className="flex flex-col items-center">
         {/* Shadow container */}
