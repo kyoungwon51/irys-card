@@ -70,7 +70,7 @@ export default function TwitterCardGenerator() {
     const initial = getRandomSpriteDescription();
     return { sprite: initial, index: 0 };
   });
-  const [userNumber, setUserNumber] = useState<number | null>(null);
+  const [userNumber, setUserNumber] = useState<number>(1);
   
   // 마우스 움직임 효과를 위한 state
   const [cardRotation, setCardRotation] = useState({ x: 0, y: 0 });
@@ -195,6 +195,11 @@ export default function TwitterCardGenerator() {
     checkLocalStorage();
   }, []);
 
+  // userNumber 변경 추적
+  useEffect(() => {
+    console.log('*** userNumber state changed to:', userNumber);
+  }, [userNumber]);
+
   // cleanup 함수
   useEffect(() => {
     return () => {
@@ -279,8 +284,10 @@ export default function TwitterCardGenerator() {
       setProfile(normalizedProfile);
       setCurrentSprite(getSpriteDescriptionByUsername(normalizedProfile.username)); // 아이디 기반 스프라이트 선택
       const userNum = getUserNumber(normalizedProfile.username);
-      console.log('Setting user number:', userNum, 'for user:', normalizedProfile.username);
+      console.log('*** fetchTwitterProfile - Setting user number:', userNum, 'for user:', normalizedProfile.username);
+      console.log('*** Current userNumber state before update:', userNumber);
       setUserNumber(userNum); // 사용자 번호 설정
+      console.log('*** setUserNumber called with:', userNum);
       
       if (data.message) {
         console.log(data.message);
@@ -355,8 +362,10 @@ export default function TwitterCardGenerator() {
       setProfile(normalizedProfile);
       setCurrentSprite(getSpriteDescriptionByUsername(normalizedProfile.username)); // 아이디 기반 스프라이트 선택
       const userNum = getUserNumber(normalizedProfile.username);
-      console.log('Setting connected user number:', userNum, 'for user:', normalizedProfile.username);
+      console.log('*** handleConnectedUserProfile - Setting connected user number:', userNum, 'for user:', normalizedProfile.username);
+      console.log('*** Current userNumber state before update:', userNumber);
       setUserNumber(userNum); // 사용자 번호 설정
+      console.log('*** setUserNumber called with:', userNum);
     } catch (error) {
       console.error('Connected profile analysis failed:', error);
       // Fallback to basic profile fetch
@@ -556,7 +565,7 @@ export default function TwitterCardGenerator() {
 
           {/* Card Header */}
           <div className="relative z-10 flex items-center justify-between mb-6">
-            <h3 className="text-xl font-bold text-gray-800">{profile.displayName} #{userNumber}</h3>
+            <h3 className="text-xl font-bold text-gray-800">{profile.displayName} #{userNumber || 1}</h3>
             <div className="w-8 h-8 bg-gradient-to-br from-gray-400 to-gray-600 rounded-lg border border-gray-300/50">
             </div>
           </div>
