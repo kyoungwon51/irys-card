@@ -10,13 +10,13 @@ export default function Home() {
       <div className="container mx-auto px-4 py-8">
         <div className="text-center mb-8">
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">
-            MONAD CARDS
+            IRYS CARDS
           </h1>
           <p className="text-lg text-white/90 mb-2">
             &ldquo;A token of appreciation for Crypto Twitter&rdquo;
           </p>
           <p className="text-sm text-white/80">
-            Create your personalized Twitter card in Monad Cards style
+            Create your personalized Twitter card in Irys Cards style
           </p>
         </div>
         

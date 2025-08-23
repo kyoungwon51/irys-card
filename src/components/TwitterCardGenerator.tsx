@@ -163,9 +163,10 @@ export default function TwitterCardGenerator() {
         useCORS: true
       });
       
+      const dataUrl = canvas.toDataURL('image/png');
       const link = document.createElement('a');
-      link.download = `${profile?.username}-monad-card.png`;
-      link.href = canvas.toDataURL();
+      link.download = `${profile?.username}-irys-card.png`;
+      link.href = dataUrl;
       link.click();
     }
   };
@@ -283,7 +284,7 @@ export default function TwitterCardGenerator() {
             Twitter 카드 생성기
           </h3>
           <p className="text-white/80 mb-6">
-            Twitter 사용자명을 입력하여 Monad Cards 스타일의 카드를 생성하세요.
+            Twitter 사용자명을 입력하여 Irys Cards 스타일의 카드를 생성하세요.
           </p>
           <form onSubmit={handleManualSearch} className="flex gap-2 max-w-md mx-auto">
             <input
@@ -324,7 +325,7 @@ export default function TwitterCardGenerator() {
 
           {/* Card Header */}
           <div className="relative z-10 flex items-center justify-between mb-6">
-            <h3 className="text-xl font-bold text-white">{profile.displayName}</h3>
+            <h3 className="text-xl font-bold text-black">{profile.displayName}</h3>
             <div className="w-8 h-8 bg-gradient-to-br from-purple-400 to-blue-500 rounded-lg flex items-center justify-center border border-white/20">
               <span className="text-white text-lg">✨</span>
             </div>
@@ -362,11 +363,11 @@ export default function TwitterCardGenerator() {
                 <div className="w-6 h-6 bg-white/20 rounded-lg flex items-center justify-center mr-3">
                   <span className="text-white text-sm">🔥</span>
                 </div>
-                <span className="text-white font-medium">
+                <span className="text-black font-medium">
                   {profile.verified ? "Verified User" : "Big Poster"}
                 </span>
               </div>
-              <p className="text-white/90 text-sm leading-relaxed">
+              <p className="text-black/80 text-sm leading-relaxed">
                 {profile.bio}
               </p>
             </div>
@@ -375,10 +376,10 @@ export default function TwitterCardGenerator() {
           {/* Bottom Section */}
           <div className="absolute bottom-6 left-6 right-6 z-10">
             <div className="text-center mb-4">
-              <p className="text-white/80 text-sm font-medium tracking-wide">
-                MONAD CARDS
+              <p className="text-black/80 text-sm font-medium tracking-wide">
+                IRYS CARDS
               </p>
-              <p className="text-white/60 text-xs mt-1">
+              <p className="text-black/60 text-xs mt-1">
                 &quot;A token of appreciation for Crypto Twitter&quot;
               </p>
             </div>
@@ -411,7 +412,7 @@ export default function TwitterCardGenerator() {
 
         {/* Card Info */}
         <div className="text-center text-white/70 mt-6 max-w-md">
-          <p className="mb-2">🎨 Monad Cards based on real Twitter profiles</p>
+          <p className="mb-2">🎨 Irys Cards based on real Twitter profiles</p>
           <p className="text-sm">
             {session ? 
               'Generate cards using your real Twitter profile information' : 
