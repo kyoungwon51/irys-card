@@ -77,6 +77,7 @@ export async function POST(request: NextRequest) {
       
       const enhancedProfile = {
         ...profileData,
+        profileImage: profileData.profile_image_url, // Twitter API 필드를 frontend 형식으로 매핑
         description: enhancedBio || profileData.description,
         tweets: tweetsData?.slice(0, 5) || [], // 최근 5개 트윗만 포함
       };
@@ -92,6 +93,7 @@ export async function POST(request: NextRequest) {
         
         const fallbackProfile = {
           ...basicProfile,
+          profileImage: basicProfile.profile_image_url, // Twitter API 필드를 frontend 형식으로 매핑
           description: enhancedBio || basicProfile.description,
           tweets: [], // 트윗을 가져올 수 없는 경우 빈 배열
         };
