@@ -94,12 +94,14 @@ export default function TwitterCardGenerator() {
   const [userNumber, setUserNumber] = useState<number | null>(null);
   const [isUserNumberLoading, setIsUserNumberLoading] = useState(false);
   const [userFontStyle, setUserFontStyle] = useState<string>("font-sans");
+  const [nicknameFontSize, setNicknameFontSize] = useState<string>("text-xl");
   
   // 마우스/터치 움직임 효과를 위한 state
   const [cardRotation, setCardRotation] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
   
   const cardRef = useRef<HTMLDivElement>(null);
+  const nicknameRef = useRef<HTMLHeadingElement>(null);
   const animationFrameRef = useRef<number | null>(null);
 
   // 컴포넌트 언마운트 시 애니메이션 정리
@@ -110,6 +112,27 @@ export default function TwitterCardGenerator() {
       }
     };
   }, []);
+
+  // 닉네임 크기 조정 함수
+  const adjustNicknameSize = () => {
+    if (!nicknameRef.current) return;
+    
+    const element = nicknameRef.current;
+    // 임시로 큰 크기로 설정하여 실제 높이 측정
+    element.style.fontSize = '1.25rem'; // text-xl
+    element.style.lineHeight = '1.75rem';
+    
+    const lineHeight = parseFloat(getComputedStyle(element).lineHeight);
+    const height = element.scrollHeight;
+    const lines = Math.round(height / lineHeight);
+    
+    if (lines > 2) {
+      // 3줄 이상이면 작은 크기로 조정
+      setNicknameFontSize("text-base");
+    } else {
+      setNicknameFontSize("text-xl");
+    }
+  };
 
   // 공통 위치 계산 함수
   const calculateRotation = (clientX: number, clientY: number) => {
@@ -128,6 +151,14 @@ export default function TwitterCardGenerator() {
     
     return { x: rotateX, y: rotateY };
   };
+
+  // 프로필이 변경될 때마다 닉네임 크기 조정
+  useEffect(() => {
+    if (profile?.displayName) {
+      // DOM 업데이트 후 크기 조정을 위해 setTimeout 사용
+      setTimeout(adjustNicknameSize, 0);
+    }
+  }, [profile?.displayName]);
 
   // 최적화된 마우스 움직임 핸들러
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -617,17 +648,28 @@ export default function TwitterCardGenerator() {
 
           {/* Card Header */}
           <div className="relative z-10 flex items-center justify-between mb-6">
-            <h3 className="text-xl font-bold text-gray-800 rounded-lg" style={{ fontFamily: 'Comic Sans MS, Nunito, Quicksand, Poppins, cursive', letterSpacing: '0.5px' }}>{profile.displayName}</h3>
+            <h3 
+              ref={nicknameRef}
+              className={`${nicknameFontSize} font-bold text-gray-800 leading-tight`} 
+              style={{ 
+                fontFamily: 'Noto Sans, -apple-system, BlinkMacSystemFont, sans-serif',
+                maxWidth: '200px',
+                wordBreak: 'break-word',
+                hyphens: 'auto'
+              }}
+            >
+              {profile.displayName}
+            </h3>
             {userNumber !== null && !isUserNumberLoading && (
               <div className="px-4 py-2 bg-gradient-to-r from-slate-700 to-slate-800 rounded-xl shadow-lg border border-slate-600/30">
-                <span className="text-white font-bold text-lg tracking-wider font-mono text-center block min-w-[3rem] italic">
+                <span className="text-white font-bold text-lg tracking-wider text-center block min-w-[3rem] italic" style={{ fontFamily: 'Noto Sans, monospace' }}>
                   #{userNumber}
                 </span>
               </div>
             )}
             {isUserNumberLoading && (
               <div className="px-4 py-2 bg-gradient-to-r from-slate-700 to-slate-800 rounded-xl shadow-lg border border-slate-600/30">
-                <span className="text-white font-bold text-lg tracking-wider font-mono text-center block min-w-[3rem] italic">
+                <span className="text-white font-bold text-lg tracking-wider text-center block min-w-[3rem] italic" style={{ fontFamily: 'Noto Sans, monospace' }}>
                   ...
                 </span>
               </div>
