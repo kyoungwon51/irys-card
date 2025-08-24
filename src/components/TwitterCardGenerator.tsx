@@ -283,32 +283,45 @@ export default function TwitterCardGenerator() {
 
   // 카드를 이미지로 다운로드하는 함수
   const downloadCardAsImage = async () => {
-    if (!cardRef.current || !profile) return;
+    if (!cardRef.current || !profile) {
+      alert('Card is not ready. Please wait for the card to load completely.');
+      return;
+    }
 
     try {
+      console.log('Starting card capture...');
+      
       // 잠시 호버 효과를 제거하고 카드를 평평하게 만듦
       const originalTransform = cardRef.current.style.transform;
       cardRef.current.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
       
-      // 약간의 지연 후 캡처 (애니메이션이 완료되도록)
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // 충분한 지연 시간으로 모든 이미지와 애니메이션이 완료되도록 기다림
+      await new Promise(resolve => setTimeout(resolve, 500));
 
+      console.log('Capturing card with html2canvas...');
+      
       const canvas = await html2canvas(cardRef.current, {
         scale: 2,
         useCORS: true,
         allowTaint: true,
-        logging: false,
+        logging: true, // 디버깅을 위해 로깅 활성화
         width: 320,
         height: 500,
-        imageTimeout: 15000
+        imageTimeout: 30000, // 30초로 증가
+        removeContainer: true,
+        foreignObjectRendering: false // SVG 문제 방지
       } as Record<string, unknown>);
+
+      console.log('Canvas captured successfully:', canvas.width, 'x', canvas.height);
 
       // Twitter 프로필 이미지 최적 크기로 조정 (400x400)
       const targetSize = 400;
       const finalCanvas = document.createElement('canvas');
       const ctx = finalCanvas.getContext('2d');
       
-      if (!ctx) return;
+      if (!ctx) {
+        throw new Error('Failed to get canvas context');
+      }
       
       finalCanvas.width = targetSize;
       finalCanvas.height = targetSize;
@@ -326,28 +339,66 @@ export default function TwitterCardGenerator() {
       const x = (targetSize - drawWidth) / 2;
       const y = (targetSize - drawHeight) / 2;
       
-      // 배경을 투명하게 유지하거나 원하는 색상으로 설정
+      // 배경을 투명하게 유지
       ctx.clearRect(0, 0, targetSize, targetSize);
       
       // 카드 그리기
       ctx.drawImage(canvas, x, y, drawWidth, drawHeight);
 
+      console.log('Final canvas prepared, starting download...');
+
       // 다운로드 링크 생성
-      const link = document.createElement('a');
-      link.download = `irys-card-${profile.username}-pfp.png`;
-      link.href = finalCanvas.toDataURL('image/png');
-      
-      // 다운로드 실행
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      try {
+        const dataURL = finalCanvas.toDataURL('image/png', 1.0);
+        
+        if (!dataURL || dataURL === 'data:,') {
+          throw new Error('Failed to generate image data');
+        }
+        
+        const link = document.createElement('a');
+        link.download = `irys-card-${profile.username}-pfp.png`;
+        link.href = dataURL;
+        
+        // 다운로드 실행
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        console.log('Download initiated successfully');
+      } catch (downloadError) {
+        throw new Error(`Download failed: ${downloadError}`);
+      }
 
       // 원래 transform 복원
       cardRef.current.style.transform = originalTransform;
       
+      console.log('Card image downloaded successfully');
+      
     } catch (error) {
-      console.error('이미지 다운로드 중 오류 발생:', error);
-      alert('이미지 다운로드에 실패했습니다. 다시 시도해주세요.');
+      console.error('Error during card image download:', error);
+      
+      // 원래 transform 복원 (에러 시에도)
+      if (cardRef.current) {
+        const originalTransform = cardRef.current.style.transform;
+        cardRef.current.style.transform = originalTransform;
+      }
+      
+      // 더 구체적인 에러 메시지
+      let errorMessage = 'Failed to download image. ';
+      if (error instanceof Error) {
+        if (error.message.includes('CORS')) {
+          errorMessage += 'Image loading blocked by CORS policy. ';
+        } else if (error.message.includes('timeout')) {
+          errorMessage += 'Image loading timed out. ';
+        } else if (error.message.includes('context')) {
+          errorMessage += 'Canvas rendering failed. ';
+        } else {
+          errorMessage += `Error: ${error.message}. `;
+        }
+      }
+      errorMessage += 'Please try again.';
+      
+      alert(errorMessage);
     }
   };
 
