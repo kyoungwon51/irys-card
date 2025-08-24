@@ -349,7 +349,7 @@ export default function TwitterCardGenerator() {
         imageTimeout: 30000, // 30초로 증가
         removeContainer: true,
         foreignObjectRendering: false, // SVG 문제 방지
-        ignoreElements: (element) => {
+        ignoreElements: (element: HTMLElement) => {
           // 문제가 될 수 있는 요소들 무시
           return element.tagName === 'SCRIPT' || 
                  element.tagName === 'STYLE' ||
