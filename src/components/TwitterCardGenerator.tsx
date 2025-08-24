@@ -295,6 +295,45 @@ export default function TwitterCardGenerator() {
       const originalTransform = cardRef.current.style.transform;
       cardRef.current.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
       
+      // CSS 색상 호환성을 위한 임시 스타일 추가
+      const tempStyle = document.createElement('style');
+      tempStyle.id = 'temp-download-style';
+      tempStyle.textContent = `
+        /* html2canvas 호환성을 위한 색상 오버라이드 */
+        .bg-gradient-to-r, .bg-gradient-to-br, .bg-gradient-to-bl {
+          background: linear-gradient(to right, #10b981, #059669) !important;
+        }
+        .from-emerald-500 {
+          --tw-gradient-from: #10b981 !important;
+        }
+        .to-emerald-600 {
+          --tw-gradient-to: #059669 !important;
+        }
+        .from-slate-700 {
+          --tw-gradient-from: #334155 !important;
+        }
+        .to-slate-800 {
+          --tw-gradient-to: #1e293b !important;
+        }
+        .text-emerald-600 {
+          color: #059669 !important;
+        }
+        .text-emerald-800 {
+          color: #065f46 !important;
+        }
+        .border-emerald-200 {
+          border-color: #a7f3d0 !important;
+        }
+        .bg-emerald-50 {
+          background-color: #ecfdf5 !important;
+        }
+        /* 기타 최신 CSS 함수 대체 */
+        * {
+          color-scheme: normal !important;
+        }
+      `;
+      document.head.appendChild(tempStyle);
+      
       // 충분한 지연 시간으로 모든 이미지와 애니메이션이 완료되도록 기다림
       await new Promise(resolve => setTimeout(resolve, 500));
 
@@ -309,10 +348,22 @@ export default function TwitterCardGenerator() {
         height: 500,
         imageTimeout: 30000, // 30초로 증가
         removeContainer: true,
-        foreignObjectRendering: false // SVG 문제 방지
+        foreignObjectRendering: false, // SVG 문제 방지
+        ignoreElements: (element) => {
+          // 문제가 될 수 있는 요소들 무시
+          return element.tagName === 'SCRIPT' || 
+                 element.tagName === 'STYLE' ||
+                 element.classList?.contains('ignore-capture');
+        }
       } as Record<string, unknown>);
 
       console.log('Canvas captured successfully:', canvas.width, 'x', canvas.height);
+
+      // 임시 스타일 제거
+      const tempStyleElement = document.getElementById('temp-download-style');
+      if (tempStyleElement) {
+        tempStyleElement.remove();
+      }
 
       // Twitter 프로필 이미지 최적 크기로 조정 (400x400)
       const targetSize = 400;
@@ -377,6 +428,12 @@ export default function TwitterCardGenerator() {
     } catch (error) {
       console.error('Error during card image download:', error);
       
+      // 임시 스타일 제거 (에러 시에도)
+      const tempStyleElement = document.getElementById('temp-download-style');
+      if (tempStyleElement) {
+        tempStyleElement.remove();
+      }
+      
       // 원래 transform 복원 (에러 시에도)
       if (cardRef.current) {
         const originalTransform = cardRef.current.style.transform;
@@ -392,6 +449,8 @@ export default function TwitterCardGenerator() {
           errorMessage += 'Image loading timed out. ';
         } else if (error.message.includes('context')) {
           errorMessage += 'Canvas rendering failed. ';
+        } else if (error.message.includes('oklab') || error.message.includes('color function')) {
+          errorMessage += 'CSS color compatibility issue detected. ';
         } else {
           errorMessage += `Error: ${error.message}. `;
         }
