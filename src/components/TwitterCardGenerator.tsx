@@ -72,42 +72,67 @@ export default function TwitterCardGenerator() {
   });
   const [userNumber, setUserNumber] = useState<number>(1);
   
-  // 마우스 움직임 효과를 위한 state
+  // 마우스/터치 움직임 효과를 위한 state
   const [cardRotation, setCardRotation] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
   
   const cardRef = useRef<HTMLDivElement>(null);
   const animationFrameRef = useRef<number | null>(null);
-  const lastMoveTime = useRef<number>(0);
 
-  // 최적화된 마우스 움직임 핸들러 (throttled)
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const now = Date.now();
-    if (now - lastMoveTime.current < 8) return; // 120fps로 제한 (더 빠른 반응)
-    lastMoveTime.current = now;
+  // 컴포넌트 언마운트 시 애니메이션 정리
+  useEffect(() => {
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, []);
 
-    if (!cardRef.current) return;
+  // 공통 위치 계산 함수
+  const calculateRotation = (clientX: number, clientY: number) => {
+    if (!cardRef.current) return { x: 0, y: 0 };
     
+    const rect = cardRef.current.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    
+    const mouseX = clientX - centerX;
+    const mouseY = clientY - centerY;
+    
+    // 부드러운 회전 계산
+    const rotateX = Math.max(-10, Math.min(10, (mouseY * -5) / (rect.height / 2)));
+    const rotateY = Math.max(-10, Math.min(10, (mouseX * 5) / (rect.width / 2)));
+    
+    return { x: rotateX, y: rotateY };
+  };
+
+  // 최적화된 마우스 움직임 핸들러
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
     }
     
     animationFrameRef.current = requestAnimationFrame(() => {
-      if (!cardRef.current) return;
-      
-      const rect = cardRef.current.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-      
-      const mouseX = e.clientX - centerX;
-      const mouseY = e.clientY - centerY;
-      
-      // 최적화된 회전 계산
-      const rotateX = Math.max(-12, Math.min(12, (mouseY * -6) / (rect.height / 2)));
-      const rotateY = Math.max(-12, Math.min(12, (mouseX * 6) / (rect.width / 2)));
-      
-      setCardRotation({ x: rotateX, y: rotateY });
+      const rotation = calculateRotation(e.clientX, e.clientY);
+      setCardRotation(rotation);
     });
+  };
+
+  // 터치 움직임 핸들러
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    e.preventDefault(); // 스크롤 방지
+    
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+    }
+    
+    const touch = e.touches[0];
+    if (touch) {
+      animationFrameRef.current = requestAnimationFrame(() => {
+        const rotation = calculateRotation(touch.clientX, touch.clientY);
+        setCardRotation(rotation);
+      });
+    }
   };
   
   const handleMouseEnter = () => {
@@ -116,10 +141,30 @@ export default function TwitterCardGenerator() {
   
   const handleMouseLeave = () => {
     setIsHovering(false);
-    setCardRotation({ x: 0, y: 0 });
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
     }
+    // 부드럽게 원위치로 복귀
+    animationFrameRef.current = requestAnimationFrame(() => {
+      setCardRotation({ x: 0, y: 0 });
+    });
+  };
+
+  // 터치 시작
+  const handleTouchStart = () => {
+    setIsHovering(true);
+  };
+
+  // 터치 종료 - 제자리 복귀
+  const handleTouchEnd = () => {
+    setIsHovering(false);
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+    }
+    // 부드럽게 원위치로 복귀
+    animationFrameRef.current = requestAnimationFrame(() => {
+      setCardRotation({ x: 0, y: 0 });
+    });
   };
 
   // 사용자 번호 관리 함수들 - 데이터베이스 API 사용
@@ -370,9 +415,9 @@ export default function TwitterCardGenerator() {
   };
 
   if (!profile) return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto pt-12">
       {/* IRYS Logo */}
-      <div className="text-center mb-0">
+      <div className="text-center mb-8">
         <div className="flex justify-center">
           <Image 
             src="/iryslogo.png" 
@@ -462,9 +507,9 @@ export default function TwitterCardGenerator() {
   );
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto pt-12">
       {/* IRYS Logo */}
-      <div className="text-center mb-0">
+      <div className="text-center mb-8">
         <div className="flex justify-center">
           <Image 
             src="/iryslogo.png" 
@@ -486,13 +531,16 @@ export default function TwitterCardGenerator() {
             onMouseMove={handleMouseMove}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
             style={{
               transform: `perspective(1000px) rotateX(${cardRotation.x}deg) rotateY(${cardRotation.y}deg)`,
               transformStyle: 'preserve-3d',
               willChange: 'transform',
               transition: isHovering 
-                ? 'transform 0.03s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.05s ease-out' 
-                : 'transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.15s ease-out',
+                ? 'transform 0.016s linear, box-shadow 0.05s ease-out' 
+                : 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.2s ease-out',
               background: `
                 linear-gradient(135deg, 
                   #f8fafc 0%, 
