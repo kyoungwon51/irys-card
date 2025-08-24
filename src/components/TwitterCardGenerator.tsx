@@ -83,7 +83,7 @@ export default function TwitterCardGenerator() {
   // 최적화된 마우스 움직임 핸들러 (throttled)
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const now = Date.now();
-    if (now - lastMoveTime.current < 16) return; // 60fps로 제한
+    if (now - lastMoveTime.current < 8) return; // 120fps로 제한 (더 빠른 반응)
     lastMoveTime.current = now;
 
     if (!cardRef.current) return;
@@ -489,7 +489,10 @@ export default function TwitterCardGenerator() {
             style={{
               transform: `perspective(1000px) rotateX(${cardRotation.x}deg) rotateY(${cardRotation.y}deg)`,
               transformStyle: 'preserve-3d',
-              transition: isHovering ? 'transform 0.05s ease-out, box-shadow 0.2s ease' : 'transform 0.3s ease-out, box-shadow 0.2s ease',
+              willChange: 'transform',
+              transition: isHovering 
+                ? 'transform 0.03s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.05s ease-out' 
+                : 'transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.15s ease-out',
               background: `
                 linear-gradient(135deg, 
                   #f8fafc 0%, 
@@ -611,7 +614,7 @@ export default function TwitterCardGenerator() {
 
           {/* Simplified sparkle effects */}
           <div 
-            className="absolute w-1 h-1 bg-white/80 rounded-full transition-all duration-300"
+            className="absolute w-1 h-1 bg-white/80 rounded-full transition-all duration-100"
             style={{
               top: `${20 + cardRotation.x}%`,
               right: `${15 + cardRotation.y}%`,
@@ -620,7 +623,7 @@ export default function TwitterCardGenerator() {
             }}
           ></div>
           <div 
-            className="absolute w-1.5 h-1.5 bg-gray-300/60 rounded-full transition-all duration-300"
+            className="absolute w-1.5 h-1.5 bg-gray-300/60 rounded-full transition-all duration-150"
             style={{
               bottom: `${25 + cardRotation.x}%`,
               left: `${20 + cardRotation.y}%`,
