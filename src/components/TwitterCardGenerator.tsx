@@ -539,8 +539,8 @@ export default function TwitterCardGenerator() {
               transformStyle: 'preserve-3d',
               willChange: 'transform',
               transition: isHovering 
-                ? 'transform 0.016s linear, box-shadow 0.05s ease-out' 
-                : 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.2s ease-out',
+                ? 'transform 0.008s linear, box-shadow 0.025s ease-out' 
+                : 'transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.1s ease-out',
               background: `
                 linear-gradient(135deg, 
                   #f8fafc 0%, 
