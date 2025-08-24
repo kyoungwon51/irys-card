@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { signIn, signOut, useSession } from 'next-auth/react';
 import Image from 'next/image';
+import html2canvas from 'html2canvas';
 
 interface TwitterProfile {
   username: string;
@@ -277,6 +278,77 @@ export default function TwitterCardGenerator() {
       }
     } catch (error) {
       console.error('Failed to fetch database stats:', error);
+    }
+  };
+
+  // 카드를 이미지로 다운로드하는 함수
+  const downloadCardAsImage = async () => {
+    if (!cardRef.current || !profile) return;
+
+    try {
+      // 잠시 호버 효과를 제거하고 카드를 평평하게 만듦
+      const originalTransform = cardRef.current.style.transform;
+      cardRef.current.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
+      
+      // 약간의 지연 후 캡처 (애니메이션이 완료되도록)
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      const canvas = await html2canvas(cardRef.current, {
+        backgroundColor: null,
+        scale: 2, // 고화질을 위한 스케일
+        useCORS: true,
+        allowTaint: true,
+        logging: false,
+        width: 320, // 카드 실제 너비
+        height: 500, // 카드 실제 높이
+        imageTimeout: 15000
+      });
+
+      // Twitter 프로필 이미지 최적 크기로 조정 (400x400)
+      const targetSize = 400;
+      const finalCanvas = document.createElement('canvas');
+      const ctx = finalCanvas.getContext('2d');
+      
+      if (!ctx) return;
+      
+      finalCanvas.width = targetSize;
+      finalCanvas.height = targetSize;
+      
+      // 카드를 중앙에 배치하고 비율 유지하면서 최대한 크게
+      const aspectRatio = canvas.width / canvas.height;
+      let drawWidth = targetSize;
+      let drawHeight = targetSize / aspectRatio;
+      
+      if (drawHeight > targetSize) {
+        drawHeight = targetSize;
+        drawWidth = targetSize * aspectRatio;
+      }
+      
+      const x = (targetSize - drawWidth) / 2;
+      const y = (targetSize - drawHeight) / 2;
+      
+      // 배경을 투명하게 유지하거나 원하는 색상으로 설정
+      ctx.clearRect(0, 0, targetSize, targetSize);
+      
+      // 카드 그리기
+      ctx.drawImage(canvas, x, y, drawWidth, drawHeight);
+
+      // 다운로드 링크 생성
+      const link = document.createElement('a');
+      link.download = `irys-card-${profile.username}-pfp.png`;
+      link.href = finalCanvas.toDataURL('image/png');
+      
+      // 다운로드 실행
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // 원래 transform 복원
+      cardRef.current.style.transform = originalTransform;
+      
+    } catch (error) {
+      console.error('이미지 다운로드 중 오류 발생:', error);
+      alert('이미지 다운로드에 실패했습니다. 다시 시도해주세요.');
     }
   };
 
@@ -761,6 +833,35 @@ export default function TwitterCardGenerator() {
           ></div>
           </div>
         </div>
+        
+        {/* Download Button */}
+        {profile && (
+          <div className="mt-6">
+            <button
+              onClick={downloadCardAsImage}
+              className="px-8 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-xl font-bold transition-all transform hover:scale-105 shadow-lg flex items-center gap-3 mx-auto"
+            >
+              <svg 
+                width="20" 
+                height="20" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                xmlns="http://www.w3.org/2000/svg"
+                className="text-white"
+              >
+                <path 
+                  d="M12 16L7 11L8.4 9.6L11 12.2V4H13V12.2L15.6 9.6L17 11L12 16Z" 
+                  fill="currentColor"
+                />
+                <path 
+                  d="M5 20V18H19V20H5Z" 
+                  fill="currentColor"
+                />
+              </svg>
+              Download PFP
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
