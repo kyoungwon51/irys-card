@@ -612,7 +612,7 @@ export default function TwitterCardGenerator() {
 
           {/* Card Header */}
           <div className="relative z-10 flex items-center justify-between mb-6">
-            <h3 className="text-xl font-bold text-gray-800 font-sans" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>{profile.displayName}</h3>
+            <h3 className="text-xl font-bold text-gray-800 rounded-lg" style={{ fontFamily: 'Comic Sans MS, Nunito, Quicksand, Poppins, cursive', letterSpacing: '0.5px' }}>{profile.displayName}</h3>
             <div className="px-4 py-2 bg-gradient-to-r from-slate-700 to-slate-800 rounded-xl shadow-lg border border-slate-600/30">
               <span className="text-white font-bold text-lg tracking-wider font-mono text-center block min-w-[3rem] italic">
                 #{userNumber || 1}
