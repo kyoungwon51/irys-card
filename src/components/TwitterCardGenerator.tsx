@@ -294,15 +294,14 @@ export default function TwitterCardGenerator() {
       await new Promise(resolve => setTimeout(resolve, 100));
 
       const canvas = await html2canvas(cardRef.current, {
-        backgroundColor: null,
-        scale: 2, // 고화질을 위한 스케일
+        scale: 2,
         useCORS: true,
         allowTaint: true,
         logging: false,
-        width: 320, // 카드 실제 너비
-        height: 500, // 카드 실제 높이
+        width: 320,
+        height: 500,
         imageTimeout: 15000
-      });
+      } as Record<string, unknown>);
 
       // Twitter 프로필 이미지 최적 크기로 조정 (400x400)
       const targetSize = 400;
