@@ -91,7 +91,8 @@ export default function TwitterCardGenerator() {
     const initial = getRandomSpriteDescription();
     return { sprite: initial, index: 0 };
   });
-  const [userNumber, setUserNumber] = useState<number>(1);
+  const [userNumber, setUserNumber] = useState<number | null>(null);
+  const [isUserNumberLoading, setIsUserNumberLoading] = useState(false);
   const [userFontStyle, setUserFontStyle] = useState<string>("font-sans");
   
   // 마우스/터치 움직임 효과를 위한 state
@@ -344,10 +345,12 @@ export default function TwitterCardGenerator() {
       setUserFontStyle(getFontStyleByUsername(normalizedProfile.username)); // 아이디 기반 글씨체 선택
       
       console.log('🔢 About to get user number for:', normalizedProfile.username);
+      setIsUserNumberLoading(true);
       const userNum = await getUserNumber(normalizedProfile);
       console.log('🔢 Got user number:', userNum, 'for user:', normalizedProfile.username);
       console.log('🔢 Setting userNumber state to:', userNum);
       setUserNumber(userNum); // 사용자 번호 설정
+      setIsUserNumberLoading(false);
       
       if (data.message) {
         console.log(data.message);
@@ -424,10 +427,12 @@ export default function TwitterCardGenerator() {
       setUserFontStyle(getFontStyleByUsername(normalizedProfile.username)); // 아이디 기반 글씨체 선택
       
       console.log('🔢 About to get user number for:', normalizedProfile.username);
+      setIsUserNumberLoading(true);
       const userNum = await getUserNumber(normalizedProfile);
       console.log('🔢 Got user number:', userNum, 'for user:', normalizedProfile.username);
       console.log('🔢 Setting userNumber state to:', userNum);
       setUserNumber(userNum); // 사용자 번호 설정
+      setIsUserNumberLoading(false);
     } catch (error) {
       console.error('Connected profile analysis failed:', error);
       // Fallback to basic profile fetch
@@ -613,11 +618,20 @@ export default function TwitterCardGenerator() {
           {/* Card Header */}
           <div className="relative z-10 flex items-center justify-between mb-6">
             <h3 className="text-xl font-bold text-gray-800 rounded-lg" style={{ fontFamily: 'Comic Sans MS, Nunito, Quicksand, Poppins, cursive', letterSpacing: '0.5px' }}>{profile.displayName}</h3>
-            <div className="px-4 py-2 bg-gradient-to-r from-slate-700 to-slate-800 rounded-xl shadow-lg border border-slate-600/30">
-              <span className="text-white font-bold text-lg tracking-wider font-mono text-center block min-w-[3rem] italic">
-                #{userNumber || 1}
-              </span>
-            </div>
+            {userNumber !== null && !isUserNumberLoading && (
+              <div className="px-4 py-2 bg-gradient-to-r from-slate-700 to-slate-800 rounded-xl shadow-lg border border-slate-600/30">
+                <span className="text-white font-bold text-lg tracking-wider font-mono text-center block min-w-[3rem] italic">
+                  #{userNumber}
+                </span>
+              </div>
+            )}
+            {isUserNumberLoading && (
+              <div className="px-4 py-2 bg-gradient-to-r from-slate-700 to-slate-800 rounded-xl shadow-lg border border-slate-600/30">
+                <span className="text-white font-bold text-lg tracking-wider font-mono text-center block min-w-[3rem] italic">
+                  ...
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Profile Image */}
