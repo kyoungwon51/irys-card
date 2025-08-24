@@ -39,6 +39,27 @@ const spriteDescriptions = [
   { name: "Friendly Sprite", description: "Open arms, warm smile, endless connections" }
 ];
 
+// 사용자명 기반 글씨체 선택 함수
+const getFontStyleByUsername = (username: string) => {
+  if (!username) return "font-sans";
+  
+  const firstChar = username.charCodeAt(0);
+  const fontStyles = [
+    "font-sans", // 기본 산세리프
+    "font-serif", // 세리프 (우아한 느낌)
+    "font-mono", // 모노스페이스 (개발자 느낌)
+    "font-sans tracking-widest text-lg", // 넓은 자간 (모던)
+    "font-serif italic", // 이탤릭 세리프 (예술적)
+    "font-sans font-light tracking-wide", // 얇은 글꼴 (미니멀)
+    "font-sans font-black tracking-tight", // 두꺼운 글꼴 (임팩트)
+    "font-mono font-bold", // 굵은 모노스페이스 (테크)
+    "font-serif font-semibold", // 세미볼드 세리프 (클래식)
+    "font-sans uppercase tracking-wider text-sm", // 대문자 (강렬함)
+  ];
+  
+  return fontStyles[firstChar % fontStyles.length];
+};
+
 // 사용자 아이디 기반 스프라이트 설명 선택 함수
 const getSpriteDescriptionByUsername = (username: string) => {
   if (!username || username.length < 2) {
@@ -71,6 +92,7 @@ export default function TwitterCardGenerator() {
     return { sprite: initial, index: 0 };
   });
   const [userNumber, setUserNumber] = useState<number>(1);
+  const [userFontStyle, setUserFontStyle] = useState<string>("font-sans");
   
   // 마우스/터치 움직임 효과를 위한 state
   const [cardRotation, setCardRotation] = useState({ x: 0, y: 0 });
@@ -319,6 +341,7 @@ export default function TwitterCardGenerator() {
       
       setProfile(normalizedProfile);
       setCurrentSprite(getSpriteDescriptionByUsername(normalizedProfile.username)); // 아이디 기반 스프라이트 선택
+      setUserFontStyle(getFontStyleByUsername(normalizedProfile.username)); // 아이디 기반 글씨체 선택
       
       console.log('🔢 About to get user number for:', normalizedProfile.username);
       const userNum = await getUserNumber(normalizedProfile);
@@ -398,6 +421,7 @@ export default function TwitterCardGenerator() {
       console.log('Normalized profile:', normalizedProfile);
       setProfile(normalizedProfile);
       setCurrentSprite(getSpriteDescriptionByUsername(normalizedProfile.username)); // 아이디 기반 스프라이트 선택
+      setUserFontStyle(getFontStyleByUsername(normalizedProfile.username)); // 아이디 기반 글씨체 선택
       
       console.log('🔢 About to get user number for:', normalizedProfile.username);
       const userNum = await getUserNumber(normalizedProfile);
@@ -588,9 +612,9 @@ export default function TwitterCardGenerator() {
 
           {/* Card Header */}
           <div className="relative z-10 flex items-center justify-between mb-6">
-            <h3 className="text-xl font-bold text-gray-800 tracking-wide">{profile.displayName}</h3>
+            <h3 className="text-xl font-bold text-gray-800 font-sans" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>{profile.displayName}</h3>
             <div className="px-4 py-2 bg-gradient-to-r from-slate-700 to-slate-800 rounded-xl shadow-lg border border-slate-600/30">
-              <span className="text-white font-bold text-lg tracking-wider font-mono text-center block min-w-[3rem]">
+              <span className="text-white font-bold text-lg tracking-wider font-mono text-center block min-w-[3rem] italic">
                 #{userNumber || 1}
               </span>
             </div>
