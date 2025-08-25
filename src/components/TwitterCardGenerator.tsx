@@ -293,6 +293,7 @@ export default function TwitterCardGenerator() {
       
       // 잠시 호버 효과를 제거하고 카드를 평평하게 만듦
       const originalTransform = cardRef.current.style.transform;
+      const originalStyle = cardRef.current.style.cssText;
       cardRef.current.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
       
       // CSS 색상 호환성을 위한 임시 스타일 추가
@@ -308,6 +309,12 @@ export default function TwitterCardGenerator() {
         }
         .to-emerald-600 {
           --tw-gradient-to: #059669 !important;
+        }
+        .from-emerald-600 {
+          --tw-gradient-from: #059669 !important;
+        }
+        .to-emerald-700 {
+          --tw-gradient-to: #047857 !important;
         }
         .from-slate-700 {
           --tw-gradient-from: #334155 !important;
@@ -327,12 +334,77 @@ export default function TwitterCardGenerator() {
         .bg-emerald-50 {
           background-color: #ecfdf5 !important;
         }
-        /* 기타 최신 CSS 함수 대체 */
+        .text-gray-800 {
+          color: #1f2937 !important;
+        }
+        .text-black {
+          color: #000000 !important;
+        }
+        .text-white {
+          color: #ffffff !important;
+        }
+        .bg-white {
+          background-color: #ffffff !important;
+        }
+        .border-gray-300 {
+          border-color: #d1d5db !important;
+        }
+        .border-slate-600 {
+          border-color: #475569 !important;
+        }
+        /* 모든 색상 함수를 기본 hex/rgb로 강제 변환 */
         * {
           color-scheme: normal !important;
+          accent-color: #10b981 !important;
+        }
+        /* 그라데이션 배경 완전 오버라이드 */
+        [style*="linear-gradient"] {
+          background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 20%, #cbd5e1 40%, #94a3b8 60%, #64748b 80%, #475569 100%) !important;
+        }
+        /* 특정 카드 배경 스타일 오버라이드 */
+        .w-80.h-\\[500px\\] {
+          background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 20%, #cbd5e1 40%, #94a3b8 60%, #64748b 80%, #475569 100%) !important;
+        }
+        /* 모든 CSS 변수를 고정값으로 대체 */
+        :root {
+          --tw-gradient-from: #10b981 !important;
+          --tw-gradient-to: #059669 !important;
+          --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+        }
+        /* backdrop-blur 효과 제거 (호환성 문제 방지) */
+        .backdrop-blur-lg, .backdrop-blur-sm {
+          backdrop-filter: none !important;
+          background: rgba(255, 255, 255, 0.8) !important;
+        }
+        /* 모든 CSS 함수 제거 */
+        [style*="oklab"], [style*="oklch"], [style*="lch"], [style*="lab"] {
+          color: #000000 !important;
+          background: #ffffff !important;
         }
       `;
       document.head.appendChild(tempStyle);
+      
+      // 카드의 동적 스타일을 고정값으로 임시 변경
+      cardRef.current.style.background = 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 20%, #cbd5e1 40%, #94a3b8 60%, #64748b 80%, #475569 100%)';
+      cardRef.current.style.boxShadow = '0px 25px 40px rgba(0, 0, 0, 0.15), 0px 35px 60px rgba(0, 0, 0, 0.1)';
+      
+      // 모든 자식 요소의 CSS 변수도 강제로 오버라이드
+      const allElements = cardRef.current.querySelectorAll('*');
+      const originalStyles: { element: Element; style: string }[] = [];
+      
+      allElements.forEach((element) => {
+        const htmlElement = element as HTMLElement;
+        originalStyles.push({ element, style: htmlElement.style.cssText });
+        
+        // 문제가 될 수 있는 CSS 속성들을 안전한 값으로 대체
+        if (htmlElement.style.background?.includes('oklab') || 
+            htmlElement.style.background?.includes('oklch') ||
+            htmlElement.style.color?.includes('oklab') ||
+            htmlElement.style.color?.includes('oklch')) {
+          htmlElement.style.background = '#ffffff';
+          htmlElement.style.color = '#000000';
+        }
+      });
       
       // 충분한 지연 시간으로 모든 이미지와 애니메이션이 완료되도록 기다림
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -364,6 +436,12 @@ export default function TwitterCardGenerator() {
       if (tempStyleElement) {
         tempStyleElement.remove();
       }
+
+      // 원본 스타일 복원
+      cardRef.current.style.cssText = originalStyle;
+      originalStyles.forEach(({ element, style }) => {
+        (element as HTMLElement).style.cssText = style;
+      });
 
       // Twitter 프로필 이미지 최적 크기로 조정 (400x400)
       const targetSize = 400;
@@ -436,8 +514,8 @@ export default function TwitterCardGenerator() {
       
       // 원래 transform 복원 (에러 시에도)
       if (cardRef.current) {
-        const originalTransform = cardRef.current.style.transform;
-        cardRef.current.style.transform = originalTransform;
+        // transform을 기본값으로 복원
+        cardRef.current.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
       }
       
       // 더 구체적인 에러 메시지
