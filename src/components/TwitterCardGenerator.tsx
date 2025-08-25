@@ -101,6 +101,12 @@ export default function TwitterCardGenerator() {
   const [cardRotation, setCardRotation] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
   
+  // 홀로그램 효과를 위한 state
+  const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 });
+  const [cardOpacity, setCardOpacity] = useState(0);
+  const [pointerFromCenter, setPointerFromCenter] = useState(0);
+  const [backgroundPosition, setBackgroundPosition] = useState({ x: 50, y: 50 });
+  
   const cardRef = useRef<HTMLDivElement>(null);
   const nicknameRef = useRef<HTMLHeadingElement>(null);
   const animationFrameRef = useRef<number | null>(null);
@@ -161,7 +167,7 @@ export default function TwitterCardGenerator() {
     }
   }, [profile?.displayName]);
 
-  // 최적화된 마우스 움직임 핸들러
+  // 최적화된 마우스 움직임 핸들러 (홀로그램 효과 포함)
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
@@ -170,10 +176,27 @@ export default function TwitterCardGenerator() {
     animationFrameRef.current = requestAnimationFrame(() => {
       const rotation = calculateRotation(e.clientX, e.clientY);
       setCardRotation(rotation);
+      
+      // 홀로그램 효과를 위한 마우스 위치 계산
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      
+      // 중심점으로부터의 거리 계산
+      const centerDistance = Math.sqrt(Math.pow(x - 50, 2) + Math.pow(y - 50, 2)) / 50;
+      const clampedDistance = Math.min(centerDistance, 1);
+      
+      setMousePosition({ x, y });
+      setCardOpacity(0.8);
+      setPointerFromCenter(clampedDistance);
+      setBackgroundPosition({ 
+        x: 50 + (x - 50) * 0.5, 
+        y: 50 + (y - 50) * 0.5 
+      });
     });
   };
 
-  // 터치 움직임 핸들러
+  // 터치 움직임 핸들러 (홀로그램 효과 포함)
   const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
     e.preventDefault(); // 스크롤 방지
     
@@ -186,6 +209,23 @@ export default function TwitterCardGenerator() {
       animationFrameRef.current = requestAnimationFrame(() => {
         const rotation = calculateRotation(touch.clientX, touch.clientY);
         setCardRotation(rotation);
+        
+        // 홀로그램 효과를 위한 터치 위치 계산
+        const rect = e.currentTarget.getBoundingClientRect();
+        const x = ((touch.clientX - rect.left) / rect.width) * 100;
+        const y = ((touch.clientY - rect.top) / rect.height) * 100;
+        
+        // 중심점으로부터의 거리 계산
+        const centerDistance = Math.sqrt(Math.pow(x - 50, 2) + Math.pow(y - 50, 2)) / 50;
+        const clampedDistance = Math.min(centerDistance, 1);
+        
+        setMousePosition({ x, y });
+        setCardOpacity(0.8);
+        setPointerFromCenter(clampedDistance);
+        setBackgroundPosition({ 
+          x: 50 + (x - 50) * 0.5, 
+          y: 50 + (y - 50) * 0.5 
+        });
       });
     }
   };
@@ -202,6 +242,10 @@ export default function TwitterCardGenerator() {
     // 부드럽게 원위치로 복귀
     animationFrameRef.current = requestAnimationFrame(() => {
       setCardRotation({ x: 0, y: 0 });
+      setMousePosition({ x: 50, y: 50 });
+      setCardOpacity(0);
+      setPointerFromCenter(0);
+      setBackgroundPosition({ x: 50, y: 50 });
     });
   };
 
@@ -219,6 +263,10 @@ export default function TwitterCardGenerator() {
     // 부드럽게 원위치로 복귀
     animationFrameRef.current = requestAnimationFrame(() => {
       setCardRotation({ x: 0, y: 0 });
+      setMousePosition({ x: 50, y: 50 });
+      setCardOpacity(0);
+      setPointerFromCenter(0);
+      setBackgroundPosition({ x: 50, y: 50 });
     });
   };
 
@@ -863,16 +911,21 @@ export default function TwitterCardGenerator() {
               background: `
                 linear-gradient(135deg, 
                   #f8fafc 0%, 
-                  #e2e8f0 20%, 
-                  #cbd5e1 40%, 
-                  #94a3b8 60%, 
-                  #64748b 80%, 
-                  #475569 100%
+                  #e2e8f0 15%, 
+                  #cbd5e1 30%, 
+                  #94a3b8 45%, 
+                  #64748b 60%, 
+                  #475569 75%, 
+                  #334155 90%, 
+                  #1e293b 100%
                 ),
-                radial-gradient(circle at ${50 + cardRotation.y * 2}% ${50 + cardRotation.x * 2}%, 
-                  rgba(255, 255, 255, 0.8) 0%, 
-                  rgba(192, 192, 192, 0.4) 50%, 
-                  transparent 70%
+                radial-gradient(circle at 30% 70%, 
+                  rgba(139, 92, 246, 0.1) 0%, 
+                  transparent 50%
+                ),
+                radial-gradient(circle at 70% 30%, 
+                  rgba(59, 130, 246, 0.1) 0%, 
+                  transparent 50%
                 )
               `,
               boxShadow: `
@@ -883,17 +936,125 @@ export default function TwitterCardGenerator() {
               `
             }}
           >
-          {/* Simplified silver shimmer */}
+          {/* Holographic Shine Layer */}
           <div 
-            className="absolute inset-0 pointer-events-none opacity-30"
+            className="absolute inset-0 pointer-events-none"
             style={{
-              background: `linear-gradient(${135 + cardRotation.y * 2}deg, 
-                transparent 30%, 
-                rgba(255, 255, 255, 0.6) 50%, 
-                rgba(192, 192, 192, 0.4) 70%, 
-                transparent 90%
-              )`,
-              transition: 'background 0.15s ease-out'
+              opacity: cardOpacity * 0.9,
+              background: `
+                repeating-linear-gradient(
+                  ${110 + backgroundPosition.x * 1.2}deg,
+                  hsl(300, 70%, 65%) 0%,
+                  hsl(260, 70%, 75%) 8%,
+                  hsl(200, 70%, 80%) 16%,
+                  hsl(150, 70%, 75%) 24%,
+                  hsl(100, 70%, 70%) 32%,
+                  hsl(50, 70%, 80%) 40%,
+                  hsl(0, 70%, 75%) 48%,
+                  hsl(300, 70%, 65%) 56%
+                ),
+                repeating-linear-gradient(
+                  ${-45 + backgroundPosition.y * 0.8}deg,
+                  transparent 0%,
+                  rgba(255, 255, 255, 0.1) 2%,
+                  transparent 4%,
+                  rgba(255, 255, 255, 0.15) 6%,
+                  transparent 8%
+                ),
+                radial-gradient(
+                  farthest-corner circle at ${mousePosition.x}% ${mousePosition.y}%,
+                  rgba(255, 255, 255, 0.9) 0%,
+                  rgba(255, 255, 255, 0.3) 30%,
+                  transparent 80%
+                )
+              `,
+              backgroundSize: '300% 300%, 20px 20px, 200% 200%',
+              backgroundPosition: `${backgroundPosition.x}% ${backgroundPosition.y}%, ${backgroundPosition.x * 0.5}px ${backgroundPosition.y * 0.5}px, center`,
+              mixBlendMode: 'color-dodge',
+              filter: `brightness(${1.1 + pointerFromCenter * 0.4}) contrast(2.8) saturate(1.2) hue-rotate(${mousePosition.x * 0.5}deg)`,
+              transition: isHovering ? 'filter 0.1s ease' : 'opacity 0.4s ease, background-position 0.4s ease, filter 0.4s ease'
+            }}
+          ></div>
+
+          {/* Holographic Glare Layer */}
+          <div 
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              opacity: cardOpacity * 0.8,
+              background: `
+                radial-gradient(
+                  farthest-corner circle at ${mousePosition.x}% ${mousePosition.y}%,
+                  rgba(255, 255, 255, 0.9) 8%,
+                  rgba(255, 255, 255, 0.4) 25%,
+                  rgba(0, 0, 0, 0.3) 90%
+                ),
+                conic-gradient(
+                  from ${backgroundPosition.x * 2}deg at ${mousePosition.x}% ${mousePosition.y}%,
+                  transparent 0deg,
+                  rgba(255, 100, 255, 0.3) 60deg,
+                  transparent 120deg,
+                  rgba(100, 255, 255, 0.3) 180deg,
+                  transparent 240deg,
+                  rgba(255, 255, 100, 0.3) 300deg,
+                  transparent 360deg
+                )
+              `,
+              mixBlendMode: 'overlay',
+              transition: isHovering ? 'none' : 'opacity 0.4s ease'
+            }}
+          ></div>
+
+          {/* Prismatic Refraction Effect */}
+          <div 
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              opacity: cardOpacity * 0.5,
+              background: `
+                linear-gradient(
+                  ${45 + mousePosition.x * 0.5}deg,
+                  rgba(255, 0, 150, 0.4) 0%,
+                  transparent 20%,
+                  rgba(0, 255, 200, 0.4) 40%,
+                  transparent 60%,
+                  rgba(255, 255, 0, 0.4) 80%,
+                  transparent 100%
+                )
+              `,
+              backgroundSize: '150% 150%',
+              backgroundPosition: `${mousePosition.x}% ${mousePosition.y}%`,
+              mixBlendMode: 'screen',
+              filter: `blur(${Math.max(0, 2 - pointerFromCenter * 2)}px)`,
+              transition: isHovering ? 'none' : 'opacity 0.4s ease, background-position 0.4s ease'
+            }}
+          ></div>
+
+          {/* Dynamic Rainbow Spectrum */}
+          <div 
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              opacity: cardOpacity * 0.6,
+              background: `
+                conic-gradient(
+                  from ${backgroundPosition.x * 3}deg at ${mousePosition.x}% ${mousePosition.y}%,
+                  hsl(0, 80%, 70%) 0deg,
+                  hsl(30, 80%, 70%) 30deg,
+                  hsl(60, 80%, 70%) 60deg,
+                  hsl(120, 80%, 70%) 90deg,
+                  hsl(180, 80%, 70%) 120deg,
+                  hsl(240, 80%, 70%) 150deg,
+                  hsl(300, 80%, 70%) 180deg,
+                  hsl(0, 80%, 70%) 210deg,
+                  hsl(60, 80%, 70%) 240deg,
+                  hsl(120, 80%, 70%) 270deg,
+                  hsl(240, 80%, 70%) 300deg,
+                  hsl(300, 80%, 70%) 330deg,
+                  hsl(0, 80%, 70%) 360deg
+                )
+              `,
+              backgroundSize: '400% 400%',
+              mixBlendMode: 'color-dodge',
+              filter: `blur(${3 - pointerFromCenter * 2}px) saturate(1.5)`,
+              transition: isHovering ? 'filter 0.1s ease' : 'opacity 0.4s ease, filter 0.4s ease'
             }}
           ></div>
 
@@ -999,23 +1160,53 @@ export default function TwitterCardGenerator() {
             </div>
           </div>
 
-          {/* Simplified sparkle effects */}
+          {/* Enhanced Holographic Light Points */}
           <div 
-            className="absolute w-1 h-1 bg-white/80 rounded-full transition-all duration-100"
+            className="absolute w-2 h-2 rounded-full transition-all duration-200"
             style={{
-              top: `${20 + cardRotation.x}%`,
-              right: `${15 + cardRotation.y}%`,
-              opacity: Math.abs(cardRotation.x + cardRotation.y) > 2 ? 0.8 : 0.2,
-              boxShadow: '0 0 6px rgba(255, 255, 255, 0.6)'
+              top: `${20 + cardRotation.x + pointerFromCenter * 10}%`,
+              right: `${15 + cardRotation.y + mousePosition.x * 0.1}%`,
+              opacity: cardOpacity * 0.9,
+              background: `radial-gradient(circle, 
+                rgba(255, 255, 255, 0.9) 0%, 
+                rgba(100, 255, 255, 0.6) 50%, 
+                transparent 100%
+              )`,
+              boxShadow: `0 0 15px rgba(100, 255, 255, ${cardOpacity * 0.8}), 
+                         0 0 25px rgba(255, 255, 255, ${cardOpacity * 0.4})`,
+              transform: `scale(${1 + pointerFromCenter * 0.5}) rotate(${backgroundPosition.x}deg)`
             }}
           ></div>
           <div 
-            className="absolute w-1.5 h-1.5 bg-gray-300/60 rounded-full transition-all duration-150"
+            className="absolute w-1.5 h-1.5 rounded-full transition-all duration-300"
             style={{
-              bottom: `${25 + cardRotation.x}%`,
-              left: `${20 + cardRotation.y}%`,
-              opacity: Math.abs(cardRotation.x + cardRotation.y) > 3 ? 0.7 : 0.1,
-              boxShadow: '0 0 8px rgba(192, 192, 192, 0.5)'
+              bottom: `${25 + cardRotation.x + pointerFromCenter * 15}%`,
+              left: `${20 + cardRotation.y + mousePosition.y * 0.1}%`,
+              opacity: cardOpacity * 0.7,
+              background: `radial-gradient(circle, 
+                rgba(255, 200, 255, 0.9) 0%, 
+                rgba(255, 100, 200, 0.5) 50%, 
+                transparent 100%
+              )`,
+              boxShadow: `0 0 12px rgba(255, 100, 200, ${cardOpacity * 0.6}), 
+                         0 0 20px rgba(255, 200, 255, ${cardOpacity * 0.3})`,
+              transform: `scale(${1 + pointerFromCenter * 0.3}) rotate(${-backgroundPosition.y}deg)`
+            }}
+          ></div>
+          <div 
+            className="absolute w-1 h-1 rounded-full transition-all duration-150"
+            style={{
+              top: `${60 + cardRotation.y + pointerFromCenter * 8}%`,
+              right: `${40 + cardRotation.x + mousePosition.x * 0.08}%`,
+              opacity: cardOpacity * 0.8,
+              background: `radial-gradient(circle, 
+                rgba(200, 255, 100, 0.9) 0%, 
+                rgba(100, 255, 150, 0.6) 50%, 
+                transparent 100%
+              )`,
+              boxShadow: `0 0 10px rgba(100, 255, 150, ${cardOpacity * 0.7}), 
+                         0 0 18px rgba(200, 255, 100, ${cardOpacity * 0.3})`,
+              transform: `scale(${1 + pointerFromCenter * 0.4}) rotate(${backgroundPosition.x * 1.5}deg)`
             }}
           ></div>
           </div>
