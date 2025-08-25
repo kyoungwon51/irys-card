@@ -40,6 +40,170 @@ const spriteDescriptions = [
   { name: "Friendly Sprite", description: "Open arms, warm smile, endless connections" }
 ];
 
+// 카드 색상 테마 정의
+const colorThemes = {
+  classic: {
+    name: 'Classic Silver',
+    background: `
+      linear-gradient(135deg, 
+        #f8fafc 0%, 
+        #e2e8f0 15%, 
+        #cbd5e1 30%, 
+        #94a3b8 45%, 
+        #64748b 60%, 
+        #475569 75%, 
+        #334155 90%, 
+        #1e293b 100%
+      )`,
+    holo: {
+      primary: 'hsl(300, 70%, 65%)',
+      secondary: 'hsl(260, 70%, 75%)',
+      accent: 'hsl(200, 70%, 80%)'
+    },
+    preview: '#cbd5e1'
+  },
+  gold: {
+    name: 'Royal Gold',
+    background: `
+      linear-gradient(135deg, 
+        #fef3c7 0%, 
+        #fde047 15%, 
+        #facc15 30%, 
+        #eab308 45%, 
+        #ca8a04 60%, 
+        #a16207 75%, 
+        #854d0e 90%, 
+        #713f12 100%
+      )`,
+    holo: {
+      primary: 'hsl(45, 90%, 65%)',
+      secondary: 'hsl(35, 90%, 75%)',
+      accent: 'hsl(25, 90%, 80%)'
+    },
+    preview: '#facc15'
+  },
+  emerald: {
+    name: 'Mystic Emerald',
+    background: `
+      linear-gradient(135deg, 
+        #d1fae5 0%, 
+        #6ee7b7 15%, 
+        #34d399 30%, 
+        #10b981 45%, 
+        #059669 60%, 
+        #047857 75%, 
+        #065f46 90%, 
+        #064e3b 100%
+      )`,
+    holo: {
+      primary: 'hsl(160, 70%, 65%)',
+      secondary: 'hsl(150, 70%, 75%)',
+      accent: 'hsl(140, 70%, 80%)'
+    },
+    preview: '#34d399'
+  },
+  sapphire: {
+    name: 'Ocean Sapphire',
+    background: `
+      linear-gradient(135deg, 
+        #dbeafe 0%, 
+        #93c5fd 15%, 
+        #60a5fa 30%, 
+        #3b82f6 45%, 
+        #2563eb 60%, 
+        #1d4ed8 75%, 
+        #1e40af 90%, 
+        #1e3a8a 100%
+      )`,
+    holo: {
+      primary: 'hsl(220, 70%, 65%)',
+      secondary: 'hsl(210, 70%, 75%)',
+      accent: 'hsl(200, 70%, 80%)'
+    },
+    preview: '#60a5fa'
+  },
+  ruby: {
+    name: 'Fire Ruby',
+    background: `
+      linear-gradient(135deg, 
+        #fee2e2 0%, 
+        #fca5a5 15%, 
+        #f87171 30%, 
+        #ef4444 45%, 
+        #dc2626 60%, 
+        #b91c1c 75%, 
+        #991b1b 90%, 
+        #7f1d1d 100%
+      )`,
+    holo: {
+      primary: 'hsl(0, 70%, 65%)',
+      secondary: 'hsl(10, 70%, 75%)',
+      accent: 'hsl(20, 70%, 80%)'
+    },
+    preview: '#f87171'
+  },
+  amethyst: {
+    name: 'Cosmic Amethyst',
+    background: `
+      linear-gradient(135deg, 
+        #f3e8ff 0%, 
+        #c4b5fd 15%, 
+        #a78bfa 30%, 
+        #8b5cf6 45%, 
+        #7c3aed 60%, 
+        #6d28d9 75%, 
+        #5b21b6 90%, 
+        #4c1d95 100%
+      )`,
+    holo: {
+      primary: 'hsl(270, 70%, 65%)',
+      secondary: 'hsl(280, 70%, 75%)',
+      accent: 'hsl(290, 70%, 80%)'
+    },
+    preview: '#a78bfa'
+  },
+  rose: {
+    name: 'Sunset Rose',
+    background: `
+      linear-gradient(135deg, 
+        #fdf2f8 0%, 
+        #fce7f3 15%, 
+        #fbcfe8 30%, 
+        #f9a8d4 45%, 
+        #f472b6 60%, 
+        #ec4899 75%, 
+        #db2777 90%, 
+        #be185d 100%
+      )`,
+    holo: {
+      primary: 'hsl(330, 70%, 65%)',
+      secondary: 'hsl(320, 70%, 75%)',
+      accent: 'hsl(310, 70%, 80%)'
+    },
+    preview: '#f9a8d4'
+  },
+  teal: {
+    name: 'Arctic Teal',
+    background: `
+      linear-gradient(135deg, 
+        #f0fdfa 0%, 
+        #ccfbf1 15%, 
+        #99f6e4 30%, 
+        #5eead4 45%, 
+        #2dd4bf 60%, 
+        #14b8a6 75%, 
+        #0f766e 90%, 
+        #134e4a 100%
+      )`,
+    holo: {
+      primary: 'hsl(180, 70%, 65%)',
+      secondary: 'hsl(170, 70%, 75%)',
+      accent: 'hsl(160, 70%, 80%)'
+    },
+    preview: '#5eead4'
+  }
+};
+
 // 사용자명 기반 글씨체 선택 함수
 const getFontStyleByUsername = (username: string) => {
   if (!username) return "font-sans";
@@ -106,6 +270,9 @@ export default function TwitterCardGenerator() {
   const [cardOpacity, setCardOpacity] = useState(0);
   const [pointerFromCenter, setPointerFromCenter] = useState(0);
   const [backgroundPosition, setBackgroundPosition] = useState({ x: 50, y: 50 });
+  
+  // 카드 색상 팔레트 state
+  const [selectedColorTheme, setSelectedColorTheme] = useState('classic');
   
   const cardRef = useRef<HTMLDivElement>(null);
   const nicknameRef = useRef<HTMLHeadingElement>(null);
@@ -909,16 +1076,7 @@ export default function TwitterCardGenerator() {
                 ? 'transform 0.008s linear, box-shadow 0.025s ease-out' 
                 : 'transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.1s ease-out',
               background: `
-                linear-gradient(135deg, 
-                  #f8fafc 0%, 
-                  #e2e8f0 15%, 
-                  #cbd5e1 30%, 
-                  #94a3b8 45%, 
-                  #64748b 60%, 
-                  #475569 75%, 
-                  #334155 90%, 
-                  #1e293b 100%
-                ),
+                ${colorThemes[selectedColorTheme as keyof typeof colorThemes].background},
                 radial-gradient(circle at 30% 70%, 
                   rgba(139, 92, 246, 0.1) 0%, 
                   transparent 50%
@@ -944,14 +1102,14 @@ export default function TwitterCardGenerator() {
               background: `
                 repeating-linear-gradient(
                   ${110 + backgroundPosition.x * 1.2}deg,
-                  hsl(300, 70%, 65%) 0%,
-                  hsl(260, 70%, 75%) 8%,
-                  hsl(200, 70%, 80%) 16%,
+                  ${colorThemes[selectedColorTheme as keyof typeof colorThemes].holo.primary} 0%,
+                  ${colorThemes[selectedColorTheme as keyof typeof colorThemes].holo.secondary} 8%,
+                  ${colorThemes[selectedColorTheme as keyof typeof colorThemes].holo.accent} 16%,
                   hsl(150, 70%, 75%) 24%,
                   hsl(100, 70%, 70%) 32%,
                   hsl(50, 70%, 80%) 40%,
                   hsl(0, 70%, 75%) 48%,
-                  hsl(300, 70%, 65%) 56%
+                  ${colorThemes[selectedColorTheme as keyof typeof colorThemes].holo.primary} 56%
                 ),
                 repeating-linear-gradient(
                   ${-45 + backgroundPosition.y * 0.8}deg,
@@ -1238,6 +1396,66 @@ export default function TwitterCardGenerator() {
               </svg>
               Download PFP
             </button>
+          </div>
+        )}
+        
+        {/* Color Palette */}
+        {profile && (
+          <div className="mt-6">
+            <div className="text-center mb-4">
+              <h4 className="text-lg font-semibold text-gray-700 mb-2">Card Color Theme</h4>
+              <p className="text-sm text-gray-500">Choose your holographic style</p>
+            </div>
+            
+            <div className="grid grid-cols-4 gap-3 max-w-md mx-auto">
+              {Object.entries(colorThemes).map(([key, theme]) => (
+                <button
+                  key={key}
+                  onClick={() => setSelectedColorTheme(key)}
+                  className={`
+                    relative group w-16 h-16 rounded-xl border-2 transition-all duration-200 transform hover:scale-110
+                    ${selectedColorTheme === key 
+                      ? 'border-gray-600 shadow-lg ring-2 ring-gray-400 ring-offset-2' 
+                      : 'border-gray-300 hover:border-gray-400 shadow-md'
+                    }
+                  `}
+                  style={{
+                    background: theme.preview,
+                    boxShadow: selectedColorTheme === key 
+                      ? `0 8px 25px ${theme.preview}40, inset 0 1px 0 rgba(255,255,255,0.3)` 
+                      : `0 4px 15px ${theme.preview}30, inset 0 1px 0 rgba(255,255,255,0.2)`
+                  }}
+                  title={theme.name}
+                >
+                  {/* Holographic shimmer effect */}
+                  <div 
+                    className="absolute inset-0 rounded-xl opacity-30 group-hover:opacity-50 transition-opacity"
+                    style={{
+                      background: `linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.6) 50%, transparent 70%)`,
+                      animation: selectedColorTheme === key ? 'shimmer 2s infinite' : 'none'
+                    }}
+                  ></div>
+                  
+                  {/* Selection indicator */}
+                  {selectedColorTheme === key && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-6 h-6 bg-white rounded-full shadow-lg flex items-center justify-center">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                          <path d="M9 12L11 14L15 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </div>
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+            
+            {/* Theme name display */}
+            <div className="text-center mt-3">
+              <span className="text-sm font-medium text-gray-600">
+                {colorThemes[selectedColorTheme as keyof typeof colorThemes].name}
+              </span>
+            </div>
           </div>
         )}
       </div>
